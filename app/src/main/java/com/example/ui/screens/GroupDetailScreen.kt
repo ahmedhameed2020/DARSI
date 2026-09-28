@@ -79,9 +79,11 @@ fun GroupDetailScreen(
     onBookGroupLesson: (Long) -> Unit,
     onDeleteGroup: (Long) -> Unit,
     onUpdateGroup: (GroupEntity) -> Unit = {},
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     val group = details.group
     var showAddMemberDialog by remember { mutableStateOf(false) }
     var showLocationEditorDialog by remember { mutableStateOf(false) }
@@ -101,12 +103,12 @@ fun GroupDetailScreen(
             IconButton(onClick = onBack, modifier = Modifier.testTag("group_detail_back_btn")) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = if (isArabic) "رجوع" else "Back",
                     tint = DarsiNavy
                 )
             }
             Text(
-                text = "Group Details",
+                text = if (isArabic) "تفاصيل المجموعة" else "Group Details",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarsiNavy,
@@ -115,7 +117,7 @@ fun GroupDetailScreen(
             IconButton(onClick = { onDeleteGroup(group.id) }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Group",
+                    contentDescription = if (isArabic) "حذف المجموعة" else "Delete Group",
                     tint = DarsiCoralRed
                 )
             }
@@ -158,7 +160,7 @@ fun GroupDetailScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "${details.members.size} students",
+                                    text = if (isArabic) "${details.members.size} طلاب" else "${details.members.size} students",
                                     color = DarsiRoyalBlue,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
@@ -169,8 +171,8 @@ fun GroupDetailScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        DetailRow("Default Price", "${CurrencyUtils.format(group.defaultPrice, currency)} / student")
-                        DetailRow("Default Duration", "${group.defaultDurationMinutes} minutes")
+                        DetailRow(if (isArabic) "السعر الافتراضي" else "Default Price", if (isArabic) "${CurrencyUtils.format(group.defaultPrice, currency)} / طالب" else "${CurrencyUtils.format(group.defaultPrice, currency)} / student")
+                        DetailRow(if (isArabic) "المدة الافتراضية" else "Default Duration", if (isArabic) "${group.defaultDurationMinutes} دقيقة" else "${group.defaultDurationMinutes} minutes")
 
                         if (group.notes.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(4.dp))
@@ -191,7 +193,7 @@ fun GroupDetailScreen(
                         ) {
                             Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Schedule Group Lesson", fontSize = 13.sp)
+                            Text(if (isArabic) "جدولة حصة للمجموعة" else "Schedule Group Lesson", fontSize = 13.sp)
                         }
                     }
                 }
@@ -217,7 +219,7 @@ fun GroupDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "DEFAULT LESSON LOCATION",
+                                    text = if (isArabic) "موقع الحصة الافتراضي" else "DEFAULT LESSON LOCATION",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.8.sp,
@@ -240,7 +242,7 @@ fun GroupDetailScreen(
                         Spacer(modifier = Modifier.height(4.dp))
 
                         if (isOnline) {
-                            Text("Online Sessions", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = DarsiNavy)
+                            Text(if (isArabic) "حصص أونلاين" else "Online Sessions", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = DarsiNavy)
                             Text("Default to remote video call sessions.", fontSize = 12.sp, color = DarsiNavyMuted)
                         } else if (!hasLoc) {
                             Text(group.defaultLocationLabel.ifBlank { "Tutor Location" }, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = DarsiNavy)
