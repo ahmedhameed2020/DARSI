@@ -68,8 +68,10 @@ fun StudentsScreen(
     onOpenGroup: (Long) -> Unit,
     onAddStudent: () -> Unit,
     onAddGroup: () -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
+    val isArabic = language == "ar"
     var searchQuery by remember { mutableStateOf("") }
     var selectedSection by remember { mutableIntStateOf(0) } // 0=Students, 1=Groups
     var selectedFilter by remember { mutableStateOf("All") } // All, Active, Due, Package
@@ -111,7 +113,7 @@ fun StudentsScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search by student, group, or subject...", fontSize = 13.sp) },
+            placeholder = { Text(if (isArabic) "ابحث بالطالب أو المجموعة أو المادة..." else "Search by student, group, or subject...", fontSize = 13.sp) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -147,7 +149,7 @@ fun StudentsScreen(
                 onClick = { selectedSection = 0 },
                 text = {
                     Text(
-                        "Students (${students.size})",
+                        if (isArabic) "الطلاب (${students.size})" else "Students (${students.size})",
                         fontWeight = if (selectedSection == 0) FontWeight.Bold else FontWeight.Medium,
                         color = if (selectedSection == 0) DarsiRoyalBlue else DarsiNavyMuted
                     )
@@ -158,7 +160,7 @@ fun StudentsScreen(
                 onClick = { selectedSection = 1 },
                 text = {
                     Text(
-                        "Groups (${groups.size})",
+                        if (isArabic) "المجموعات (${groups.size})" else "Groups (${groups.size})",
                         fontWeight = if (selectedSection == 1) FontWeight.Bold else FontWeight.Medium,
                         color = if (selectedSection == 1) DarsiRoyalBlue else DarsiNavyMuted
                     )
@@ -175,12 +177,13 @@ fun StudentsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val chips = listOf("All", "Active", "Due", "Package")
+                val chipLabels = if (isArabic) mapOf("All" to "الكل", "Active" to "نشط", "Due" to "مستحق", "Package" to "باقة") else emptyMap()
                 items(chips) { chip ->
                     val isSelected = (selectedFilter == chip)
                     FilterChip(
                         selected = isSelected,
                         onClick = { selectedFilter = chip },
-                        label = { Text(chip, fontSize = 12.sp) },
+                        label = { Text(chipLabels[chip] ?: chip, fontSize = 12.sp) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = DarsiRoyalBlueSubtle,
                             selectedLabelColor = DarsiRoyalBlue
