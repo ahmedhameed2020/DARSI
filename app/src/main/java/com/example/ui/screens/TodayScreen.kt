@@ -383,7 +383,8 @@ fun TodayScreen(
                                             studentName = nextLesson.student?.name ?: nextLesson.title,
                                             subject = nextLesson.student?.subject ?: "lesson",
                                             timeString = DateTimeUtils.formatTime(nextLesson.lesson.startEpochMillis),
-                                            location = nextLesson.displayAreaOrLocation
+                                            location = nextLesson.displayAreaOrLocation,
+                                            language = language
                                         )
                                         WhatsAppHelper.openChat(context, phone, msg)
                                     },
