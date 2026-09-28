@@ -223,7 +223,8 @@ fun DarsiApp(
                         },
                         onDeleteStudent = { sId ->
                             viewModel.deleteStudent(sId)
-                        }
+                        },
+                        language = appLanguage
                     )
                 }
 
@@ -324,6 +325,7 @@ fun DarsiApp(
                     students = allStudents,
                     groups = allGroups,
                     currency = currency,
+                    language = appLanguage,
                     initialStudentId = quickAddInitialStudentId,
                     onCheckConflict = { start, end, travelMin ->
                         viewModel.checkConflict(start, end, travelTimeMinutes = travelMin)
@@ -367,6 +369,7 @@ fun DarsiApp(
                 LessonDetailDialog(
                     lessonDetails = selectedLessonForDetail!!,
                     currency = currency,
+                    language = appLanguage,
                     onDismiss = { viewModel.closeLessonDetail() },
                     onUpdateStatus = { lId, status ->
                         viewModel.updateLessonStatus(lId, status)
