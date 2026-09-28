@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DARSI — دَرْسي | المعاينة الحية وإضافة الطلاب التفاعلية</title>
+    <!-- Fonts: Cairo (Arabic Primary) + Plus Jakarta Sans (Numbers & Tech) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darsiBgWarm: '#F8F9FA',
+                        darsiPaper: '#FDFBF7',
+                        darsiNavy: '#0F172A',
+                        darsiNavyMuted: '#64748B',
+                        darsiBlue: '#2563EB',
+                        darsiBlueHover: '#1D4ED8',
+                        darsiBlueLight: '#EFF6FF',
+                        darsiSage: '#059669',
+                        darsiSageLight: '#ECFDF5',
+                        darsiAmber: '#D97706',
+                        darsiAmberLight: '#FFFBEB',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at 50% 15%, #1E293B 0%, #0F172A 100%);
+            min-height: 100vh;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .spring-transition {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .press-effect {
+            transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), filter 0.16s ease;
+        }
+        .press-effect:active {
+            transform: scale(0.96);
+            filter: brightness(0.96);
+        }
+
+        .phone-frame-shadow {
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8),
+                        0 0 0 10px #1E293B,
+                        0 0 0 12px #334155,
+                        0 0 40px rgba(37, 99, 235, 0.15);
+        }
+
+        .card-soft {
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+        }
+        .card-active-glow {
+            box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.25);
+        }
+
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(10px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .screen-anim {
+            animation: fadeInSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.65; transform: scale(1.15); }
+        }
+        .live-dot {
+            animation: gentlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-100 p-4 md:p-8 flex flex-col items-center justify-center min-h-screen">
+
+    <!-- Top Server Banner -->
+    <div class="max-w-4xl w-full bg-slate-800/85 border border-slate-700/80 rounded-3xl p-4 md:p-6 mb-8 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 spring-transition">
+        <div class="flex items-center gap-4">
+            <div class="w-13 h-13 p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                <i data-lucide="sparkles" class="w-6 h-6 stroke-[2.2]"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-extrabold text-white tracking-wide">دَرْسي — المعاينة التفاعلية الكاملة</h1>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">إضافة الطلاب تعمل 100%</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">خطوط واضحة ومقروءة • أيقونات Lucide العالمية • محاكاة حقيقية لإضافة الطلاب</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <a href="darsi-debug.apk" download="darsi-debug.apk" id="download-apk-btn" class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-2xl spring-transition press-effect shadow-lg shadow-blue-600/30 text-sm">
+                <i data-lucide="download-cloud" class="w-4 h-4 stroke-[2.5]"></i>
+                <span>تنزيل APK للموبايل (18.1 MB)</span>
+            </a>
+            <div class="hidden lg:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/60 px-3.5 py-2.5 rounded-2xl border border-slate-700/80">
+                <i data-lucide="wifi" class="w-4 h-4 text-emerald-400"></i>
+                <span>على الواي فاي:</span>
+                <code class="text-blue-400 font-mono font-bold">192.168.0.106:8080</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container: Mobile Frame + Controls -->
+    <div class="max-w-5xl w-full flex flex-col lg:flex-row items-center lg:items-start justify-center gap-10">
+        
+        <!-- Premium Mobile Frame -->
+        <div class="relative w-[375px] h-[760px] bg-darsiBgWarm rounded-[46px] phone-frame-shadow overflow-hidden flex flex-col border-[2px] border-slate-700/50 select-none">
+            
+            <!-- Android Dynamic Status Bar -->
+            <div class="bg-darsiBgWarm px-7 pt-3.5 pb-1 flex justify-between items-center text-xs font-bold text-slate-500 z-30">
+                <span class="font-jakarta tracking-tight">05:45</span>
+                <!-- Dynamic Pill Island -->
+                <div class="w-24 h-4.5 bg-slate-900 rounded-full mx-auto flex items-center justify-end px-2">
+                    <div class="w-2.5 h-2.5 bg-slate-800 rounded-full"></div>
+                </div>
+                <div class="flex items-center gap-2 text-slate-600">
+                    <span class="text-[10px] font-jakarta">5G</span>
+                    <i data-lucide="wifi" class="w-3.5 h-3.5 stroke-[2.2]"></i>
+                    <i data-lucide="battery" class="w-4 h-4 stroke-[2.2]"></i>
+                </div>
+            </div>
+
+            <!-- Viewport Screen Content -->
+            <div id="screen-container" class="flex-1 overflow-y-auto no-scrollbar bg-darsiBgWarm text-darsiNavy relative flex flex-col px-5 pt-3 pb-24">
+                <!-- Dynamically Rendered -->
+            </div>
+
+            <!-- Toast Notification Container -->
+            <div id="toast-notification" class="hidden absolute top-14 inset-x-5 z-50 bg-slate-900/95 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 screen-anim">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                </div>
+                <div>
+                    <h5 id="toast-title" class="font-bold text-xs text-white">تم بنجاح</h5>
+                    <p id="toast-msg" class="text-[11px] text-slate-300">تمت إضافة الطالب بنجاح إلى القائمة</p>
+                </div>
+            </div>
+
+            <!-- Floating Action Button (FAB) -->
+            <button onclick="openQuickAddModal()" id="fab-quick-add" class="absolute bottom-20 left-6 w-14 h-14 bg-gradient-to-tr from-blue-700 to-blue-500 text-white rounded-2xl shadow-xl flex items-center justify-center spring-transition press-effect hover:scale-105 active:scale-95 z-30 group">
+                <i data-lucide="plus" class="w-7 h-7 stroke-[2.5] group-hover:rotate-90 spring-transition"></i>
+            </button>
+
+            <!-- Bottom Navigation Bar (4 Clean Tabs) -->
+            <div class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-100/80 px-4 py-2 flex justify-around items-center z-30 shadow-lg">
+                <!-- Today Tab -->
+                <button onclick="switchTab('today')" id="tab-btn-today" class="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-darsiBlue font-bold">
+                    <i data-lucide="calendar-check-2" class="w-5 h-5 stroke-[2.2]"></i>
+                    <span class="text-[11px]">اليوم</span>
+                </button>
+                <!-- Calendar Tab -->
+                <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-slate-400 font-medium hover:text-slate-600">
+                    <i data-lucide="calendar-days" class="w-5 h-5 stroke-[2]"></i>
+                    <span class="text-[11px]">التقويم</span>
+                </button>
+                <!-- Students Tab -->
+                <button onclick="switchTab('students')" id="tab-btn-students" class="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-slate-400 font-medium hover:text-slate-600">
+                    <i data-lucide="users" class="w-5 h-5 stroke-[2]"></i>
+                    <span class="text-[11px]">الطلاب</span>
+                </button>
+                <!-- Payments Tab -->
+                <button onclick="switchTab('payments')" id="tab-btn-payments" class="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-slate-400 font-medium hover:text-slate-600">
+                    <i data-lucide="wallet-cards" class="w-5 h-5 stroke-[2]"></i>
+                    <span class="text-[11px]">المدفوعات</span>
+                </button>
+            </div>
+
+            <!-- Quick Add Action Sheet Modal -->
+            <div id="quick-add-modal" class="hidden absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-40 flex flex-col justify-end spring-transition">
+                <div class="bg-white rounded-t-[36px] p-6 shadow-2xl screen-anim border-t border-slate-100">
+                    <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="zap" class="w-5 h-5 text-amber-500 stroke-[2.2]"></i>
+                            <h3 class="font-extrabold text-slate-900 text-base">إضافة سريعة</h3>
+                        </div>
+                        <button onclick="closeQuickAddModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center press-effect">
+                            <i data-lucide="x" class="w-4 h-4 stroke-[2.5]"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <button onclick="closeQuickAddModal(); openAddStudentModal();" id="btn-quick-add-student" class="flex items-center gap-3.5 p-3.5 bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-100 rounded-2xl text-right spring-transition press-effect group">
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 spring-transition">
+                                <i data-lucide="user-plus" class="w-5 h-5 stroke-[2.2]"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">إضافة طالب جديد</h4>
+                                <p class="text-xs text-slate-500">الاسم، رقم الهاتف، والمادة وسعر الحصة</p>
+                            </div>
+                        </button>
+
+                        <button onclick="closeQuickAddModal(); openBookLessonModal();" class="flex items-center gap-3.5 p-3.5 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-100 rounded-2xl text-right spring-transition press-effect group">
+                            <div class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 spring-transition">
+                                <i data-lucide="calendar-plus" class="w-5 h-5 stroke-[2.2]"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">حجز حصة</h4>
+                                <p class="text-xs text-slate-500">طالب، وقت، مدة ومكان الدرس</p>
+                            </div>
+                        </button>
+
+                        <button onclick="closeQuickAddModal(); switchTab('payments');" class="flex items-center gap-3.5 p-3.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 rounded-2xl text-right spring-transition press-effect group">
+                            <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 spring-transition">
+                                <i data-lucide="badge-dollar-sign" class="w-5 h-5 stroke-[2.2]"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">تسجيل دفعة</h4>
+                                <p class="text-xs text-slate-500">توثيق مبلغ مستلم من طالب</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REAL INTERACTIVE ADD STUDENT MODAL -->
+            <div id="add-student-modal" class="hidden absolute inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex flex-col justify-end spring-transition">
+                <div class="bg-white rounded-t-[36px] p-6 shadow-2xl screen-anim border-t border-slate-100 max-h-[92%] overflow-y-auto no-scrollbar">
+                    <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-3"></div>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <i data-lucide="user-plus" class="w-5 h-5 stroke-[2.2]"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-base">إضافة طالب جديد</h3>
+                                <p class="text-xs text-slate-400 font-medium">املأ بيانات الطالب الأساسية للمتابعة</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAddStudentModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center press-effect">
+                            <i data-lucide="x" class="w-4 h-4 stroke-[2.5]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <form onsubmit="handleSaveStudent(event)" class="space-y-3.5">
+                        
+                        <!-- Student Name -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-blue-600"></i>
+                                <span>اسم الطالب <span class="text-rose-500">*</span></span>
+                            </label>
+                            <input type="text" id="input-student-name" required placeholder="مثال: عبد الرحمن يوسف" 
+                                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                        </div>
+
+                        <!-- Phone Numbers Row -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="phone" class="w-3 h-3 text-emerald-600"></i>
+                                    <span>هاتف الطالب (واتساب)</span>
+                                </label>
+                                <input type="tel" id="input-student-phone" placeholder="+974 55..." 
+                                       class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition font-jakarta">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="phone-call" class="w-3 h-3 text-slate-500"></i>
+                                    <span>هاتف ولي الأمر</span>
+                                </label>
+                                <input type="tel" id="input-parent-phone" placeholder="+974 66..." 
+                                       class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition font-jakarta">
+                            </div>
+                        </div>
+
+                        <!-- Grade & Subject Row -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="graduation-cap" class="w-3 h-3 text-indigo-600"></i>
+                                    <span>الصف الدراسي</span>
+                                </label>
+                                <input type="text" id="input-student-grade" placeholder="الصف 12" value="الصف الثاني عشر"
+                                       class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="book-open" class="w-3 h-3 text-blue-600"></i>
+                                    <span>المادة</span>
+                                </label>
+                                <input type="text" id="input-student-subject" placeholder="رياضيات" value="رياضيات"
+                                       class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                            </div>
+                        </div>
+
+                        <!-- Price and Duration -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="badge-dollar-sign" class="w-3 h-3 text-amber-500"></i>
+                                    <span>سعر الحصة (QAR)</span>
+                                </label>
+                                <input type="number" id="input-student-price" placeholder="200" value="200"
+                                       class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition font-jakarta">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3 text-slate-500"></i>
+                                    <span>مدة الحصة</span>
+                                </label>
+                                <select id="input-student-duration" class="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                                    <option value="60">60 دقيقة</option>
+                                    <option value="90">90 دقيقة</option>
+                                    <option value="120">120 دقيقة</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="btn-submit-student" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-extrabold text-sm shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 spring-transition press-effect">
+                                <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                                <span>حفظ الطالب الجديد</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- WhatsApp Message Preview Modal -->
+            <div id="whatsapp-modal" class="hidden absolute inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 spring-transition">
+                <div class="bg-[#ECE5DD] rounded-3xl w-full p-4.5 shadow-2xl text-slate-900 border border-slate-300 screen-anim">
+                    <div class="flex justify-between items-center pb-2.5 border-b border-slate-300/80 mb-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                <i data-lucide="message-circle" class="w-4 h-4 stroke-[2.5]"></i>
+                            </div>
+                            <div>
+                                <span id="whatsapp-recipient-name" class="font-bold text-sm block leading-none">ولي الأمر</span>
+                                <span class="text-[10px] text-slate-500 font-medium">متصل الآن</span>
+                            </div>
+                        </div>
+                        <button onclick="closeWhatsAppModal()" class="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 flex items-center justify-center text-slate-600 press-effect">
+                            <i data-lucide="x" class="w-4 h-4 stroke-[2.5]"></i>
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-2xl p-3.5 shadow-sm text-xs leading-relaxed mb-4 text-right border border-slate-200/50">
+                        <p id="whatsapp-text-content" class="text-slate-800 leading-relaxed font-medium">السلام عليكم ورحمة الله، أود تذكيركم بموعد حصة اليوم. تحياتي لكم.</p>
+                        <div class="flex justify-end items-center gap-1 text-[10px] text-slate-400 mt-2 font-jakarta">
+                            <span>05:46 PM</span>
+                            <span class="text-blue-500 font-bold">✓✓</span>
+                        </div>
+                    </div>
+                    <button onclick="closeWhatsAppModal(); showToast('تم إرسال الرسالة عبر الواتساب بنجاح!');" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 spring-transition press-effect">
+                        <i data-lucide="send" class="w-4 h-4 stroke-[2.2]"></i>
+                        <span>إرسال عبر الواتساب فوراً</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Real Interactive Review Panel -->
+        <div class="flex-1 max-w-md flex flex-col gap-5">
+            
+            <div class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/80 p-6 rounded-3xl backdrop-blur-xl shadow-2xl">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-2xl">👤</span>
+                    <div>
+                        <h2 class="text-lg font-black text-white">مراجعة إضافة الطلاب والخطوط</h2>
+                        <p class="text-xs text-slate-400">تحقق فوري من تجربة المستخدم والأيقونات</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-300 leading-relaxed mt-2 mb-4">
+                    تم ربط شاشة إضافة الطالب بنموذج حقيقي متكامل يدعم الأيقونات وحقول البيانات كاملة مع حفظها وإظهارها فوراً في القائمة:
+                </p>
+
+                <div class="space-y-2.5">
+                    <button onclick="openAddStudentModal()" id="btn-trigger-add-student-panel" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs flex items-center justify-between shadow-lg shadow-emerald-600/25 spring-transition press-effect">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="user-plus" class="w-4 h-4 stroke-[2.5]"></i>
+                            <span>فتح نموذج إضافة طالب الآن</span>
+                        </div>
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+
+                    <button onclick="switchTab('students')" class="w-full py-3 px-4 bg-slate-700/70 hover:bg-slate-700 text-white rounded-2xl font-bold text-xs flex items-center justify-between border border-slate-600 spring-transition press-effect">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 stroke-[2]"></i>
+                            <span>استعراض قائمة الطلاب المحدثة</span>
+                        </div>
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="mt-5 pt-4 border-t border-slate-700/80 text-[11px] text-slate-400 space-y-1.5">
+                    <div class="flex items-center gap-1.5 text-slate-300 font-bold">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>الخطوط: Cairo للأوزان العربية و Plus Jakarta Sans للأرقام.</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-300 font-bold">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>الأيقونات: أيقونات Lucide متناسقة بدقة 2.2px على كامل الواجهات.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Interactive Data Store & Functions -->
+    <script>
+        let currentTab = 'students';
+
+        // Live in-memory reactive students array
+        let studentsData = [
+            {
+                id: 1,
+                name: "عمر عبد العزيز",
+                grade: "الصف العاشر",
+                subject: "رياضيات",
+                phone: "+974 5511 2233",
+                parentPhone: "+974 5522 3344",
+                price: 200,
+                duration: 60,
+                due: 200,
+                paid: false
+            },
+            {
+                id: 2,
+                name: "سارة محمد",
+                grade: "الصف الحادي عشر",
+                subject: "كيمياء",
+                phone: "+974 6622 3344",
+                parentPhone: "+974 6633 4455",
+                price: 200,
+                duration: 60,
+                due: 0,
+                paid: true
+            },
+            {
+                id: 3,
+                name: "خالد إبراهيم",
+                grade: "الصف التاسع",
+                subject: "فيزياء",
+                phone: "+974 7733 4455",
+                parentPhone: null,
+                price: 150,
+                duration: 60,
+                due: 150,
+                paid: false
+            }
+        ];
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function renderStudentsList() {
+            let html = `
+                <div class="screen-anim">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">الطلاب (${studentsData.length})</h2>
+                            <p class="text-xs text-slate-400 font-medium">إدارة الطلاب والمستحقات المباشرة</p>
+                        </div>
+                        <button onclick="openAddStudentModal()" id="btn-add-student-header" class="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-2xl shadow-sm spring-transition press-effect">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+                            <span>طالب جديد</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-3" id="students-cards-container">
+            `;
+
+            studentsData.forEach(s => {
+                const statusBadge = s.paid 
+                    ? `<span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-xl font-jakarta">خالص ✓</span>`
+                    : `<span class="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200/60 px-2.5 py-0.5 rounded-xl font-jakarta">مستحق: ${s.due} QAR</span>`;
+
+                html += `
+                    <div class="bg-white p-4 rounded-2xl card-soft border border-slate-100 spring-transition hover:border-slate-200">
+                        <div class="flex justify-between items-start mb-2.5">
+                            <div>
+                                <h4 class="font-extrabold text-sm text-slate-800">${s.name}</h4>
+                                <span class="text-xs text-slate-400 font-medium">${s.grade} • ${s.subject}</span>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-jakarta mb-3 flex items-center gap-2">
+                            <span>📞 ${s.phone || 'بدون هاتف'}</span>
+                            <span>•</span>
+                            <span>⏱️ ${s.duration} دقيقة</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-slate-100">
+                            <button onclick="triggerWhatsAppMessage('${s.name}', '${s.phone}')" class="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1 spring-transition press-effect">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5 stroke-[2.2]"></i>
+                                <span>واتساب</span>
+                            </button>
+                            <button onclick="showToast('جاري الاتصال بـ ${s.name}...')" class="py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1 spring-transition press-effect">
+                                <i data-lucide="phone" class="w-3.5 h-3.5 stroke-[2.2]"></i>
+                                <span>اتصال</span>
+                            </button>
+                            <button onclick="openBookLessonModal('${s.name}')" class="py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1 spring-transition press-effect">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 stroke-[2.2]"></i>
+                                <span>حجز</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+
+        const screens = {
+            today: `
+                <div class="screen-anim">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <span class="text-[11px] font-bold text-slate-400 block tracking-tight">الإثنين، 28 سبتمبر</span>
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">مرحباً، أستاذ أحمد 👋</h2>
+                        </div>
+                        <button onclick="showToast('فتح الإعدادات')" class="w-10 h-10 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm card-soft hover:bg-slate-50 spring-transition press-effect">
+                            <i data-lucide="settings-2" class="w-5 h-5 stroke-[2]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Live Dynamic Card -->
+                    <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-[28px] p-5 card-active-glow relative overflow-hidden mb-5 spring-transition">
+                        <div class="flex justify-between items-center mb-2.5">
+                            <div class="flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 live-dot"></span>
+                                <span class="text-[11px] font-bold tracking-tight">الحصة القادمة • بعد 15 دقيقة</span>
+                            </div>
+                            <span class="text-xs font-bold font-jakarta text-blue-100">05:45 PM</span>
+                        </div>
+                        <h3 class="text-lg font-extrabold tracking-tight mb-0.5">عمر عبد العزيز</h3>
+                        <p class="text-xs text-blue-100/90 font-medium mb-3.5">الرياضيات • الصف العاشر (حصة منزلية)</p>
+                        <div class="flex items-center gap-2 text-xs text-blue-100 bg-black/15 backdrop-blur-sm p-2.5 rounded-2xl mb-4 border border-white/10">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-amber-300 stroke-[2.2] flex-shrink-0"></i>
+                            <span class="truncate font-medium">الدفنة، شارع الجامعة، فيلا 12</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="showToast('تم إنهاء الحصة وتحديث الرصيد بنجاح!')" class="py-2.5 bg-emerald-500 hover:bg-emerald-600 font-extrabold rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30 spring-transition press-effect">
+                                <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+                                <span>إنهاء الحصة</span>
+                            </button>
+                            <button onclick="triggerWhatsAppMessage('عمر عبد العزيز', '+97455112233')" class="py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 spring-transition press-effect">
+                                <i data-lucide="message-circle" class="w-4 h-4 stroke-[2.2]"></i>
+                                <span>واتساب</span>
+                            </button>
+                            <button onclick="showToast('جاري فتح خرائط Google...')" class="py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 spring-transition press-effect">
+                                <i data-lucide="navigation-2" class="w-4 h-4 stroke-[2.2]"></i>
+                                <span>الاتجاهات</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Daily Schedule -->
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-blue-600 stroke-[2.5]"></i>
+                            <h3 class="font-extrabold text-sm text-slate-800">جدول اليوم</h3>
+                        </div>
+                        <span class="text-xs text-blue-600 font-bold hover:underline cursor-pointer">عرض الأسبوع</span>
+                    </div>
+
+                    <div class="space-y-2.5 mb-4">
+                        <div class="bg-white p-3.5 rounded-2xl card-soft border border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="check-check" class="w-5 h-5 stroke-[2.5]"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-800">سارة محمد</h4>
+                                    <p class="text-[11px] text-slate-400 font-medium">04:00 - 05:00 م • مكتملة</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-xl font-jakarta">200 QAR ✓</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-2xl card-soft border-2 border-blue-500/50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="hourglass" class="w-5 h-5 stroke-[2.2]"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-800">عمر عبد العزيز</h4>
+                                    <p class="text-[11px] text-blue-600 font-semibold">05:45 - 06:45 م • قادمة الآن</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl font-jakarta">200 QAR</span>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            calendar: `
+                <div class="screen-anim">
+                    <div class="flex justify-between items-center mb-3">
+                        <div>
+                            <h2 class="text-lg font-black text-slate-900 tracking-tight">التقويم الذكي</h2>
+                            <p class="text-xs text-slate-400">نظرة سريعة على جدول الأسبوع</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between gap-1.5 mb-4 bg-white p-2 rounded-2xl card-soft border border-slate-100">
+                        <div class="flex-1 text-center py-2 rounded-xl text-xs font-bold text-slate-400">سبت<br><span class="font-jakarta text-sm">26</span></div>
+                        <div class="flex-1 text-center py-2 rounded-xl text-xs font-bold text-slate-400">أحد<br><span class="font-jakarta text-sm">27</span></div>
+                        <div class="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-md shadow-blue-500/20">إثنين<br><span class="font-jakarta text-sm">28</span></div>
+                        <div class="flex-1 text-center py-2 rounded-xl text-xs font-bold text-slate-400">ثلاثاء<br><span class="font-jakarta text-sm">29</span></div>
+                        <div class="flex-1 text-center py-2 rounded-xl text-xs font-bold text-slate-400">أربعاء<br><span class="font-jakarta text-sm">30</span></div>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div class="p-4 bg-white rounded-2xl card-soft border border-slate-100 flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                    <h4 class="font-extrabold text-sm text-slate-800">عمر عبد العزيز</h4>
+                                </div>
+                                <p class="text-xs text-slate-400">رياضيات • 60 دقيقة • الدفنة</p>
+                            </div>
+                            <span class="text-xs font-bold font-jakarta text-blue-600 bg-blue-50 px-3 py-1 rounded-xl">05:45 PM</span>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            payments: `
+                <div class="screen-anim">
+                    <div class="mb-4">
+                        <h2 class="text-lg font-black text-slate-900 tracking-tight">المدفوعات والمستحقات</h2>
+                        <p class="text-xs text-slate-400">إدارة الإيرادات والتحصيل دون إحراج</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-gradient-to-tr from-emerald-600 to-teal-500 text-white p-4 rounded-3xl shadow-lg shadow-emerald-600/20">
+                            <span class="text-emerald-100 text-xs font-semibold block mb-1">المستلم هذا الشهر</span>
+                            <span class="text-xl font-black font-jakarta">4,800 QAR</span>
+                        </div>
+                        <div class="bg-gradient-to-tr from-amber-600 to-orange-500 text-white p-4 rounded-3xl shadow-lg shadow-amber-600/20">
+                            <span class="text-amber-100 text-xs font-semibold block mb-1">إجمالي المستحق</span>
+                            <span class="text-xl font-black font-jakarta">850 QAR</span>
+                        </div>
+                    </div>
+
+                    <button onclick="openAddStudentModal()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/25 text-sm flex items-center justify-center gap-2 spring-transition press-effect">
+                        <i data-lucide="plus-circle" class="w-4 h-4 stroke-[2.5]"></i>
+                        <span>تسجيل دفعة جديدة</span>
+                    </button>
+                </div>
+            `
+        };
+
+        function renderScreen() {
+            if (currentTab === 'students') {
+                document.getElementById('screen-container').innerHTML = renderStudentsList();
+            } else {
+                document.getElementById('screen-container').innerHTML = screens[currentTab];
+            }
+            lucide.createIcons();
+
+            ['today', 'calendar', 'students', 'payments'].forEach(t => {
+                const btn = document.getElementById('tab-btn-' + t);
+                if (t === currentTab) {
+                    btn.className = 'flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-darsiBlue font-bold';
+                } else {
+                    btn.className = 'flex flex-col items-center gap-1 py-1 px-3 rounded-2xl spring-transition press-effect text-slate-400 font-medium hover:text-slate-600';
+                }
+            });
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            renderScreen();
+        }
+
+        function openQuickAddModal() {
+            document.getElementById('quick-add-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeQuickAddModal() {
+            document.getElementById('quick-add-modal').classList.add('hidden');
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('add-student-modal').classList.remove('hidden');
+            lucide.createIcons();
+            setTimeout(() => {
+                document.getElementById('input-student-name').focus();
+            }, 100);
+        }
+        function closeAddStudentModal() {
+            document.getElementById('add-student-modal').classList.add('hidden');
+        }
+
+        function handleSaveStudent(e) {
+            e.preventDefault();
+            const name = document.getElementById('input-student-name').value.trim();
+            const phone = document.getElementById('input-student-phone').value.trim();
+            const parentPhone = document.getElementById('input-parent-phone').value.trim();
+            const grade = document.getElementById('input-student-grade').value.trim();
+            const subject = document.getElementById('input-student-subject').value.trim();
+            const price = parseFloat(document.getElementById('input-student-price').value) || 200;
+            const duration = parseInt(document.getElementById('input-student-duration').value) || 60;
+
+            if (!name) {
+                alert('يرجى كتابة اسم الطالب!');
+                return;
+            }
+
+            const newStudent = {
+                id: Date.now(),
+                name: name,
+                grade: grade || 'الصف الثاني عشر',
+                subject: subject || 'عام',
+                phone: phone || '+974 5500 0000',
+                parentPhone: parentPhone,
+                price: price,
+                duration: duration,
+                due: price,
+                paid: false
+            };
+
+            // Prepend new student
+            studentsData.unshift(newStudent);
+
+            closeAddStudentModal();
+            currentTab = 'students';
+            renderScreen();
+
+            showToast(`تمت إضافة الطالب "${name}" بنجاح!`);
+        }
+
+        function triggerWhatsAppMessage(name, phone) {
+            document.getElementById('whatsapp-recipient-name').innerText = name + ' (' + (phone || 'ولي الأمر') + ')';
+            document.getElementById('whatsapp-text-content').innerText = 
+                `السلام عليكم ورحمة الله، أود تذكيركم بموعد حصة ${name} القادمة في تمام الساعة 5:45 مساءً. تحياتي لكم.`;
+            document.getElementById('whatsapp-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeWhatsAppModal() {
+            document.getElementById('whatsapp-modal').classList.add('hidden');
+        }
+
+        function openBookLessonModal(studentName) {
+            showToast(`فتح نموذج حجز حصة لـ ${studentName || 'طالب'}...`);
+        }
+
+        // Initialize immediately
+        renderScreen();
+    </script>
+</body>
+</html>

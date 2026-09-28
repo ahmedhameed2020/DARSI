@@ -858,13 +858,24 @@ private fun AddStudentForm(
     var defaultPrice by remember { mutableDoubleStateOf(200.0) }
     var duration by remember { mutableIntStateOf(60) }
     var notes by remember { mutableStateOf("") }
+    var hasAttemptedSubmit by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedTextField(
             value = name,
-            onValueChange = { name = it },
-            label = { Text(if (isArabic) "اسم الطالب" else "Student Name") },
-            placeholder = { Text(if (isArabic) "مثال: خالد محمد" else "e.g. Khalid") },
+            onValueChange = { 
+                name = it 
+                if (it.isNotBlank()) hasAttemptedSubmit = false
+            },
+            label = { Text(if (isArabic) "اسم الطالب *" else "Student Name *") },
+            placeholder = { Text(if (isArabic) "مثال: عبد الرحمن يوسف" else "e.g. Khalid") },
+            leadingIcon = {
+                Icon(Icons.Default.Person, contentDescription = null, tint = DarsiRoyalBlue)
+            },
+            isError = hasAttemptedSubmit && name.isBlank(),
+            supportingText = if (hasAttemptedSubmit && name.isBlank()) {
+                { Text(if (isArabic) "يرجى كتابة اسم الطالب للمتابعة" else "Please enter student name") }
+            } else null,
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
@@ -957,8 +968,11 @@ private fun AddStudentForm(
                         privateNotes = notes.trim()
                     )
                     onSubmit(s)
+                } else {
+                    hasAttemptedSubmit = true
                 }
             },
+            enabled = name.isNotBlank(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue),
             modifier = Modifier
