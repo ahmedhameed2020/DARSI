@@ -77,6 +77,7 @@ fun QuickAddBottomSheet(
     students: List<StudentEntity>,
     groups: List<GroupEntity>,
     currency: String,
+    language: String = "en",
     initialStudentId: Long? = null,
     onCheckConflict: (suspend (Long, Long, Int?) -> ConflictCheckResult)? = null,
     onDismiss: () -> Unit,
@@ -104,8 +105,13 @@ fun QuickAddBottomSheet(
     onRecordPayment: (PaymentEntity) -> Unit
 ) {
     val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isArabic = language == "ar"
     var selectedTab by remember { mutableIntStateOf(initialTab) }
-    val tabTitles = listOf("Book Lesson", "Add Student", "Add Group", "Record Payment")
+    val tabTitles = if (isArabic) {
+        listOf("إضافة حصة", "إضافة طالب", "إضافة مجموعة", "تسجيل دفعة")
+    } else {
+        listOf("Book Lesson", "Add Student", "Add Group", "Record Payment")
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -125,13 +131,13 @@ fun QuickAddBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Quick Add",
+                    text = if (isArabic) "إضافة سريعة" else "Quick Add",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = DarsiNavyMuted)
+                    Icon(imageVector = Icons.Default.Close, contentDescription = if (isArabic) "إغلاق" else "Close", tint = DarsiNavyMuted)
                 }
             }
 
@@ -167,6 +173,7 @@ fun QuickAddBottomSheet(
                         groups = groups,
                         currency = currency,
                         initialStudentId = initialStudentId,
+                        language = language,
                         onCheckConflict = onCheckConflict,
                         onSubmit = { sId, gId, dateStr, hr, min, dur, pr, loc, rec, days, locType, locLbl, area, addr, maps, travel, meet ->
                             onBookLesson(sId, gId, dateStr, hr, min, dur, pr, loc, rec, days, locType, locLbl, area, addr, maps, travel, meet)
@@ -178,6 +185,7 @@ fun QuickAddBottomSheet(
                     // 2. ADD STUDENT
                     AddStudentForm(
                         currency = currency,
+                        language = language,
                         onSubmit = { student ->
                             onAddStudent(student)
                             onDismiss()
@@ -189,6 +197,7 @@ fun QuickAddBottomSheet(
                     AddGroupForm(
                         students = students,
                         currency = currency,
+                        language = language,
                         onSubmit = { grp, memberIds ->
                             onAddGroup(grp, memberIds)
                             onDismiss()
@@ -201,6 +210,7 @@ fun QuickAddBottomSheet(
                         students = students,
                         currency = currency,
                         initialStudentId = initialStudentId,
+                        language = language,
                         onSubmit = { payment ->
                             onRecordPayment(payment)
                             onDismiss()
@@ -221,6 +231,7 @@ private fun BookLessonForm(
     groups: List<GroupEntity>,
     currency: String,
     initialStudentId: Long? = null,
+    language: String = "en",
     onCheckConflict: (suspend (Long, Long, Int?) -> ConflictCheckResult)? = null,
     onSubmit: (
         studentId: Long?,
@@ -257,7 +268,7 @@ private fun BookLessonForm(
     val customDays = remember { mutableStateListOf<Int>() } // 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
 
     var locationType by remember { mutableStateOf("STUDENT_HOME") }
-    var locationLabel by remember { mutableStateOf("Student Home") }
+    var locationLabel by remember { mutableStateOf(if (language == "ar") "منزل الطالب" else "Student Home") }
     var areaName by remember { mutableStateOf("") }
     var addressText by remember { mutableStateOf("") }
     var travelTimeStr by remember { mutableStateOf("") }
@@ -579,6 +590,7 @@ private fun BookLessonForm(
 @Composable
 private fun AddStudentForm(
     currency: String,
+    language: String = "en",
     onSubmit: (StudentEntity) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -708,6 +720,7 @@ private fun AddStudentForm(
 private fun AddGroupForm(
     students: List<StudentEntity>,
     currency: String,
+    language: String = "en",
     onSubmit: (GroupEntity, List<Long>) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -801,6 +814,7 @@ private fun RecordPaymentForm(
     students: List<StudentEntity>,
     currency: String,
     initialStudentId: Long? = null,
+    language: String = "en",
     onSubmit: (PaymentEntity) -> Unit
 ) {
     var selectedStudentId by remember { mutableStateOf<Long?>(initialStudentId ?: students.firstOrNull()?.id) }
