@@ -47,13 +47,37 @@ object WhatsAppHelper {
         }
     }
 
-    fun createLessonReminderMessage(studentName: String, subject: String, timeString: String, location: String): String {
-        return "Hello $studentName, this is a friendly reminder for our $subject lesson scheduled today at $timeString ($location). See you soon!"
+    fun createLessonReminderMessage(
+        studentName: String,
+        subject: String,
+        timeString: String,
+        location: String,
+        language: String = "en"
+    ): String {
+        val locationSuffix = if (location.isNotBlank()) {
+            if (language == "ar") " في $location" else " ($location)"
+        } else {
+            ""
+        }
+        return if (language == "ar") {
+            "مرحبًا $studentName، تذكير لطيف بموعد حصة $subject اليوم الساعة $timeString$locationSuffix. نراك قريبًا!"
+        } else {
+            "Hello $studentName, this is a friendly reminder for our $subject lesson scheduled today at $timeString$locationSuffix. See you soon!"
+        }
     }
 
-    fun createPaymentReminderMessage(studentName: String, amountDue: Double, currency: String): String {
+    fun createPaymentReminderMessage(
+        studentName: String,
+        amountDue: Double,
+        currency: String,
+        language: String = "en"
+    ): String {
         val formattedAmount = CurrencyUtils.format(amountDue, currency)
-        return "Hello $studentName, this is a gentle reminder regarding the outstanding balance of $formattedAmount for our lessons. Thank you for your support!"
+        return if (language == "ar") {
+            "مرحبًا $studentName، تذكير لطيف بالمبلغ المستحق وقدره $formattedAmount مقابل الدروس. شكرًا لك."
+        } else {
+            "Hello $studentName, this is a gentle reminder regarding the outstanding balance of $formattedAmount for our lessons. Thank you for your support!"
+        }
     }
 }
 

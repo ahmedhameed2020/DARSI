@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import com.example.util.MapsAndLocationHelper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -83,6 +83,7 @@ import java.util.Calendar
 fun LessonDetailDialog(
     lessonDetails: LessonWithDetails,
     currency: String,
+    language: String = "en",
     onDismiss: () -> Unit,
     onUpdateStatus: (Long, String) -> Unit,
     onUpdateNotes: (Long, String, String, String) -> Unit,
@@ -91,6 +92,7 @@ fun LessonDetailDialog(
     onOpenPaymentForStudent: (Long) -> Unit
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     val lesson = lessonDetails.lesson
 
     var selectedStatus by remember(lesson.status) { mutableStateOf(lesson.status) }
@@ -130,13 +132,17 @@ fun LessonDetailDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Repeat,
-                                        contentDescription = "Recurring",
+                                        contentDescription = if (isArabic) "متكررة" else "Recurring",
                                         tint = DarsiRoyalBlue,
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Spacer(modifier = Modifier.width(2.dp))
                                     Text(
-                                        text = if (lesson.isException) "Exception" else "Recurring",
+                                        text = if (isArabic) {
+                                            if (lesson.isException) "استثناء" else "متكررة"
+                                        } else {
+                                            if (lesson.isException) "Exception" else "Recurring"
+                                        },
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = DarsiRoyalBlue
@@ -152,7 +158,7 @@ fun LessonDetailDialog(
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close", tint = DarsiNavyMuted)
+                    Icon(imageVector = Icons.Default.Close, contentDescription = if (isArabic) "إغلاق" else "Close", tint = DarsiNavyMuted)
                 }
             }
         },
@@ -194,12 +200,12 @@ fun LessonDetailDialog(
                                 onClick = { showRescheduleDialog = true },
                                 modifier = Modifier.height(28.dp)
                             ) {
-                                Text("Reschedule", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = DarsiRoyalBlue)
+                                Text(if (isArabic) "إعادة الجدولة" else "Reschedule", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = DarsiRoyalBlue)
                             }
                         }
                         val isOnline = lesson.locationType == "ONLINE"
                         val displayLoc = when {
-                            isOnline -> "Online"
+                            isOnline -> if (isArabic) "أونلاين" else "Online"
                             lesson.areaName.isNotBlank() -> lesson.areaName
                             lesson.locationLabel.isNotBlank() -> lesson.locationLabel
                             else -> lesson.location
@@ -223,7 +229,7 @@ fun LessonDetailDialog(
                             ) {
                                 Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Join Online Meeting", fontSize = 12.sp)
+                                Text(if (isArabic) "دخول الاجتماع" else "Join Online Meeting", fontSize = 12.sp)
                             }
                         } else if (!isOnline && (lesson.areaName.isNotBlank() || lesson.addressText.isNotBlank() || lesson.latitude != null || lesson.mapsLink.isNotBlank())) {
                             Spacer(modifier = Modifier.height(8.dp))
@@ -248,7 +254,7 @@ fun LessonDetailDialog(
                                 ) {
                                     Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(15.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Open Maps", fontSize = 11.sp)
+                                    Text(if (isArabic) "فتح الخريطة" else "Open Maps", fontSize = 11.sp)
                                 }
 
                                 OutlinedButton(
@@ -377,9 +383,9 @@ fun LessonDetailDialog(
                                 contentColor = DarsiSuccessGreenDark
                             )
                         ) {
-                            Icon(Icons.Outlined.Chat, contentDescription = null, modifier = Modifier.size(15.dp))
+                            Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = null, modifier = Modifier.size(15.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("WhatsApp", fontSize = 11.sp)
+                            Text(if (isArabic) "واتساب" else "WhatsApp", fontSize = 11.sp)
                         }
                     }
 

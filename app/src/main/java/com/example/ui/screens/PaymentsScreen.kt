@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,9 +68,11 @@ fun PaymentsScreen(
     currency: String,
     onRecordPayment: () -> Unit,
     onOpenStudent: (Long) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     var showOnlyBalancesDue by remember { mutableStateOf(false) }
 
     val displayedStudents = remember(students, showOnlyBalancesDue) {
@@ -97,13 +99,13 @@ fun PaymentsScreen(
         ) {
             Column {
                 Text(
-                    text = "Payments",
+                    text = if (isArabic) "المدفوعات" else "Payments",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Text(
-                    text = DateTimeUtils.formatMonthYear(System.currentTimeMillis()),
+                    text = DateTimeUtils.formatMonthYear(System.currentTimeMillis(), if (isArabic) java.util.Locale.forLanguageTag("ar") else java.util.Locale.US),
                     fontSize = 13.sp,
                     color = DarsiNavySubtle
                 )
@@ -117,7 +119,7 @@ fun PaymentsScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Record Payment", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (isArabic) "تسجيل دفعة" else "Record Payment", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -136,7 +138,7 @@ fun PaymentsScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "Received this month",
+                        text = if (isArabic) "تم التحصيل هذا الشهر" else "Received this month",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = DarsiSuccessGreenDark
@@ -159,7 +161,7 @@ fun PaymentsScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "Total amount due",
+                        text = if (isArabic) "إجمالي المستحق" else "Total amount due",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = DarsiCoralRedDark
@@ -184,7 +186,7 @@ fun PaymentsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "STUDENT PAYMENT STATUS",
+                text = if (isArabic) "حالة مدفوعات الطلاب" else "STUDENT PAYMENT STATUS",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.8.sp,
@@ -197,7 +199,11 @@ fun PaymentsScreen(
                 modifier = Modifier.height(30.dp)
             ) {
                 Text(
-                    text = if (showOnlyBalancesDue) "Show All" else "Show Overdue Only",
+                    text = if (showOnlyBalancesDue) {
+                        if (isArabic) "عرض الكل" else "Show All"
+                    } else {
+                        if (isArabic) "المستحق فقط" else "Show Overdue Only"
+                    },
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -223,7 +229,11 @@ fun PaymentsScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = if (showOnlyBalancesDue) "All students are settled up!" else "No students registered yet.",
+                                text = if (showOnlyBalancesDue) {
+                                    if (isArabic) "جميع الطلاب سددوا مستحقاتهم!" else "All students are settled up!"
+                                } else {
+                                    if (isArabic) "لم يتم تسجيل أي طالب حتى الآن." else "No students registered yet."
+                                },
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavy
@@ -236,12 +246,14 @@ fun PaymentsScreen(
                     StudentPaymentRow(
                         item = item,
                         currency = currency,
+                        language = language,
                         onOpenStudent = { onOpenStudent(item.student.id) },
                         onSendReminder = {
                             val msg = WhatsAppHelper.createPaymentReminderMessage(
                                 studentName = item.student.name,
                                 amountDue = item.balanceDue,
-                                currency = currency
+                                currency = currency,
+                                language = language
                             )
                             WhatsAppHelper.openChat(context, item.student.phone, msg)
                         }
@@ -260,12 +272,23 @@ fun PaymentsScreen(
 fun StudentPaymentRow(
     item: StudentWithBalance,
     currency: String,
+    language: String = "en",
     onOpenStudent: () -> Unit,
     onSendReminder: () -> Unit
 ) {
+    val isArabic = language == "ar"
     val student = item.student
     val packageInfo = item.activePackage?.let {
-        "${it.totalLessons - it.usedLessons} lessons remaining"
+        val remaining = it.totalLessons - it.usedLessons
+        if (isArabic) "$remaining حصص متبقية" else "$remaining lessons remaining"
+    }
+
+    val paymentTypeDisplay = when (student.paymentType) {
+        "PER_LESSON", "POST_LESSON" -> if (isArabic) "بعد كل حصة" else "Per Lesson"
+        "MONTHLY" -> if (isArabic) "شهري" else "Monthly"
+        "PACKAGE" -> if (isArabic) "باقة" else "Package"
+        "PREPAID" -> if (isArabic) "مسبق الدفع" else "Prepaid"
+        else -> student.paymentType.replace("_", " ")
     }
 
     DarsiCard(
@@ -287,7 +310,7 @@ fun StudentPaymentRow(
                     color = DarsiNavy
                 )
                 Text(
-                    text = "${student.grade} · ${student.paymentType.replace("_", " ")}",
+                    text = "${student.grade} · $paymentTypeDisplay",
                     fontSize = 12.sp,
                     color = DarsiNavyMuted
                 )
@@ -297,7 +320,8 @@ fun StudentPaymentRow(
                 PaymentStatusBadge(
                     balanceDue = item.balanceDue,
                     currency = currency,
-                    packageInfo = packageInfo
+                    packageInfo = packageInfo,
+                    language = language
                 )
 
                 if (item.balanceDue > 0) {
@@ -312,8 +336,8 @@ fun StudentPaymentRow(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Chat,
-                            contentDescription = "WhatsApp Payment Reminder",
+                            imageVector = Icons.AutoMirrored.Outlined.Chat,
+                            contentDescription = if (isArabic) "تذكير بالدفع عبر واتساب" else "WhatsApp Payment Reminder",
                             modifier = Modifier.size(14.dp)
                         )
                     }

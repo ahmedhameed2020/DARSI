@@ -24,13 +24,18 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import com.example.ui.theme.DarsiBackgroundWarm
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.DarsiTab
@@ -123,42 +128,55 @@ fun DarsiApp(
     val currency = tutorSettings?.defaultCurrency ?: "QAR"
     val tutorName = tutorSettings?.tutorName ?: "Teacher"
     val isOnboardingDone = tutorSettings?.isOnboardingCompleted == true
+    val appLanguage = tutorSettings?.appLanguage ?: "en"
+    val layoutDirection = if (appLanguage == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr
 
     if (!isOnboardingDone) {
-        OnboardingScreen(
-            onComplete = { settings, loadDemo ->
-                viewModel.saveSettings(settings)
-                if (loadDemo) {
-                    viewModel.loadSampleGulfDemoData()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = DarsiBackgroundWarm
+        ) {
+            OnboardingScreen(
+                onComplete = { settings, openAddStudent ->
+                    viewModel.saveSettings(settings)
+                    if (openAddStudent) {
+                        viewModel.selectTab(DarsiTab.STUDENTS)
+                        viewModel.openQuickAdd(1)
+                    }
                 }
-            }
-        )
+            )
+        }
         return
     }
 
     // Handle Android system back press
-    BackHandler(enabled = selectedStudentId != null || selectedGroupId != null) {
+    BackHandler(enabled = selectedStudentId != null || selectedGroupId != null || currentTab == DarsiTab.MORE) {
         if (selectedStudentId != null) {
             viewModel.closeStudent()
         } else if (selectedGroupId != null) {
             viewModel.closeGroup()
+        } else if (currentTab == DarsiTab.MORE) {
+            viewModel.selectTab(DarsiTab.TODAY)
         }
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing,
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        Scaffold(
+            containerColor = DarsiBackgroundWarm,
+            contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
-            if (selectedStudentId == null && selectedGroupId == null) {
+            if (selectedStudentId == null && selectedGroupId == null && currentTab != DarsiTab.MORE) {
                 DarsiBottomBar(
                     currentTab = currentTab,
-                    onTabSelected = { viewModel.selectTab(it) }
+                    onTabSelected = { viewModel.selectTab(it) },
+                    language = appLanguage
                 )
             }
         },
         floatingActionButton = {
-            if (selectedStudentId == null && selectedGroupId == null) {
+            if (selectedStudentId == null && selectedGroupId == null && currentTab != DarsiTab.MORE) {
                 FloatingActionButton(
-                    onClick = { viewModel.openQuickAdd(0) },
+                    onClick = { viewModel.openQuickAdd(-1) },
                     shape = CircleShape,
                     containerColor = DarsiRoyalBlue,
                     contentColor = Color.White,
@@ -216,7 +234,8 @@ fun DarsiApp(
                         },
                         onDeleteStudent = { sId ->
                             viewModel.deleteStudent(sId)
-                        }
+                        },
+                        language = appLanguage
                     )
                 }
 
@@ -240,7 +259,8 @@ fun DarsiApp(
                         },
                         onUpdateGroup = { g ->
                             viewModel.saveGroup(g, emptyList())
-                        }
+                        },
+                        language = appLanguage
                     )
                 }
 
@@ -254,8 +274,10 @@ fun DarsiApp(
                                 todayLessons = todayLessons,
                                 todaySummary = todaySummary,
                                 travelBufferMinutes = tutorSettings?.defaultTravelBufferMinutes ?: 10,
+                                language = appLanguage,
                                 onOpenLesson = { viewModel.openLessonDetail(it) },
-                                onBookLesson = { viewModel.openQuickAdd(0) }
+                                onBookLesson = { viewModel.openQuickAdd(0) },
+                                onOpenSettings = { viewModel.selectTab(DarsiTab.MORE) }
                             )
                         }
 
@@ -267,7 +289,8 @@ fun DarsiApp(
                                 onOpenLesson = { viewModel.openLessonDetail(it) },
                                 onBookLessonForDate = { dateStr ->
                                     viewModel.openQuickAdd(0)
-                                }
+                                },
+                                language = appLanguage
                             )
                         }
 
@@ -279,7 +302,8 @@ fun DarsiApp(
                                 onOpenStudent = { viewModel.openStudent(it) },
                                 onOpenGroup = { viewModel.openGroup(it) },
                                 onAddStudent = { viewModel.openQuickAdd(1) },
-                                onAddGroup = { viewModel.openQuickAdd(2) }
+                                onAddGroup = { viewModel.openQuickAdd(2) },
+                                language = appLanguage
                             )
                         }
 
@@ -290,7 +314,8 @@ fun DarsiApp(
                                 summary = todaySummary,
                                 currency = currency,
                                 onRecordPayment = { viewModel.openQuickAdd(3) },
-                                onOpenStudent = { viewModel.openStudent(it) }
+                                onOpenStudent = { viewModel.openStudent(it) },
+                                language = appLanguage
                             )
                         }
 
@@ -299,7 +324,9 @@ fun DarsiApp(
                                 settings = tutorSettings,
                                 onSaveSettings = { viewModel.saveSettings(it) },
                                 onLoadDemoData = { viewModel.loadSampleGulfDemoData() },
-                                onClearAllData = { viewModel.clearAllData() }
+                                onClearAllData = { viewModel.clearAllData() },
+                                language = appLanguage,
+                                onBack = { viewModel.selectTab(DarsiTab.TODAY) }
                             )
                         }
                     }
@@ -313,6 +340,7 @@ fun DarsiApp(
                     students = allStudents,
                     groups = allGroups,
                     currency = currency,
+                    language = appLanguage,
                     initialStudentId = quickAddInitialStudentId,
                     onCheckConflict = { start, end, travelMin ->
                         viewModel.checkConflict(start, end, travelTimeMinutes = travelMin)
@@ -356,6 +384,7 @@ fun DarsiApp(
                 LessonDetailDialog(
                     lessonDetails = selectedLessonForDetail!!,
                     currency = currency,
+                    language = appLanguage,
                     onDismiss = { viewModel.closeLessonDetail() },
                     onUpdateStatus = { lId, status ->
                         viewModel.updateLessonStatus(lId, status)
@@ -376,5 +405,6 @@ fun DarsiApp(
                 )
             }
         }
+    }
     }
 }

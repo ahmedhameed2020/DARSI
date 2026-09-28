@@ -206,12 +206,15 @@ object MapsAndLocationHelper {
     fun formatDepartureSuggestion(
         startEpochMillis: Long,
         travelTimeMinutes: Int?,
-        bufferMinutes: Int = 10
+        bufferMinutes: Int = 10,
+        isArabic: Boolean = false
     ): String? {
         if (travelTimeMinutes == null || travelTimeMinutes <= 0) return null
         val totalLeadMillis = (travelTimeMinutes + bufferMinutes) * 60 * 1000L
         val departureEpoch = startEpochMillis - totalLeadMillis
-        val timeFormat = SimpleDateFormat("h:mm a", Locale.US)
-        return "Leave by ${timeFormat.format(Date(departureEpoch))}"
+        val locale = if (isArabic) Locale.forLanguageTag("ar") else Locale.US
+        val timeFormat = SimpleDateFormat("h:mm a", locale)
+        val timeStr = timeFormat.format(Date(departureEpoch))
+        return if (isArabic) "تحرك الساعة $timeStr" else "Leave by $timeStr"
     }
 }

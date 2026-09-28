@@ -21,13 +21,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Directions
-import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Timer
 import com.example.util.MapsAndLocationHelper
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -84,11 +86,15 @@ fun TodayScreen(
     todayLessons: List<LessonWithDetails>,
     todaySummary: PaymentSummary,
     travelBufferMinutes: Int = 10,
+    language: String = "en",
     onOpenLesson: (LessonWithDetails) -> Unit,
     onBookLesson: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val strings = com.example.ui.localization.darsiStrings(language)
+    val isArabic = language == "ar"
 
     LazyColumn(
         modifier = modifier
@@ -97,7 +103,7 @@ fun TodayScreen(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Calm Greeting & Date Header
+        // Calm Greeting & Date Header + Settings Gear
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -107,15 +113,40 @@ fun TodayScreen(
             ) {
                 Column {
                     Text(
-                        text = DateTimeUtils.getGreeting(tutorName),
+                        text = if (isArabic) {
+                            val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                            val greeting = when {
+                                hour < 12 -> "صباح الخير"
+                                else -> "مساء الخير"
+                            }
+                            "$greeting، $tutorName"
+                        } else {
+                            DateTimeUtils.getGreeting(tutorName)
+                        },
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarsiNavyDark
                     )
                     Text(
-                        text = DateTimeUtils.formatReadableDate(System.currentTimeMillis()),
+                        text = if (isArabic) {
+                            java.text.SimpleDateFormat("EEEE، d MMMM", java.util.Locale.forLanguageTag("ar")).format(java.util.Date())
+                        } else {
+                            DateTimeUtils.formatReadableDate(System.currentTimeMillis())
+                        },
                         fontSize = 13.sp,
                         color = DarsiNavySubtle
+                    )
+                }
+
+                IconButton(
+                    onClick = onOpenSettings,
+                    modifier = Modifier.testTag("top_settings_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = if (isArabic) "الإعدادات" else "Settings",
+                        tint = DarsiNavyMuted,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -126,7 +157,8 @@ fun TodayScreen(
             if (nextLesson != null) {
                 val countdown = DateTimeUtils.getCountdownString(
                     nextLesson.lesson.startEpochMillis,
-                    nextLesson.lesson.endEpochMillis
+                    nextLesson.lesson.endEpochMillis,
+                    isArabic = (language == "ar")
                 )
 
                 Card(
@@ -151,7 +183,7 @@ fun TodayScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "NEXT LESSON",
+                                    text = strings.nextLesson,
                                     color = Color.White,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -224,7 +256,7 @@ fun TodayScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "(${nextLesson.lesson.durationMinutes} min)",
+                                text = if (isArabic) "(${nextLesson.lesson.durationMinutes} دقيقة)" else "(${nextLesson.lesson.durationMinutes} min)",
                                 fontSize = 12.sp,
                                 color = DarsiNavySubtle
                             )
@@ -245,7 +277,7 @@ fun TodayScreen(
                                 ) {
                                     Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(14.dp), tint = DarsiRoyalBlue)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Online Lesson", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarsiRoyalBlue)
+                                    Text(strings.onlineLesson, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarsiRoyalBlue)
                                 }
                             }
                         } else if (areaOrLoc.isNotBlank()) {
@@ -259,7 +291,7 @@ fun TodayScreen(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "$areaOrLoc · ${nextLesson.lesson.locationLabel.ifBlank { "Student Home" }}",
+                                    text = "$areaOrLoc · ${nextLesson.lesson.locationLabel.ifBlank { strings.studentHome }}",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = DarsiNavy
@@ -267,44 +299,62 @@ fun TodayScreen(
                             }
                         }
 
-                        val travelMin = nextLesson.effectiveTravelTimeMinutes
-                        if (!nextLesson.isOnline && travelMin != null && travelMin > 0) {
-                            val departureText = MapsAndLocationHelper.formatDepartureSuggestion(
-                                startEpochMillis = nextLesson.lesson.startEpochMillis,
-                                travelTimeMinutes = travelMin,
-                                bufferMinutes = travelBufferMinutes
-                            )
-                            if (departureText != null) {
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Surface(
-                                    color = DarsiAmberBg,
-                                    shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, DarsiAmberBorder)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = DarsiAmberDark)
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "$departureText (Est. travel $travelMin min)",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = DarsiAmberDark
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Actions: Directions / Meeting, WhatsApp, Call, Open Lesson
+                        // Actions: Primary Open Lesson button + small icon buttons for WhatsApp and Directions
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Button(
+                                onClick = { onOpenLesson(nextLesson) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp)
+                                    .testTag("next_lesson_open_btn"),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = DarsiRoyalBlue
+                                )
+                            ) {
+                                Text(
+                                    text = if (isArabic) "فتح الحصة" else "Open lesson",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+
+                            val phone = nextLesson.phoneToContact
+                            if (!phone.isNullOrEmpty()) {
+                                FilledTonalButton(
+                                    onClick = {
+                                        val msg = WhatsAppHelper.createLessonReminderMessage(
+                                            studentName = nextLesson.student?.name ?: nextLesson.title,
+                                            subject = nextLesson.student?.subject ?: "lesson",
+                                            timeString = DateTimeUtils.formatTime(nextLesson.lesson.startEpochMillis),
+                                            location = nextLesson.displayAreaOrLocation,
+                                            language = language
+                                        )
+                                        WhatsAppHelper.openChat(context, phone, msg)
+                                    },
+                                    modifier = Modifier
+                                        .height(44.dp)
+                                        .testTag("next_lesson_whatsapp_btn"),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = DarsiSuccessGreenBg,
+                                        contentColor = DarsiSuccessGreenDark
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Outlined.Chat,
+                                        contentDescription = strings.whatsapp,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+
                             if (!nextLesson.isOnline) {
                                 FilledTonalButton(
                                     onClick = {
@@ -318,7 +368,7 @@ fun TodayScreen(
                                         )
                                     },
                                     modifier = Modifier
-                                        .weight(1f)
+                                        .height(44.dp)
                                         .testTag("next_lesson_directions_btn"),
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.filledTonalButtonColors(
@@ -328,11 +378,9 @@ fun TodayScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Directions,
-                                        contentDescription = "Directions",
-                                        modifier = Modifier.size(16.dp)
+                                        contentDescription = strings.directions,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Directions", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             } else if (nextLesson.lesson.meetingUrl.isNotBlank()) {
                                 FilledTonalButton(
@@ -340,7 +388,7 @@ fun TodayScreen(
                                         MapsAndLocationHelper.openMeetingUrl(context, nextLesson.lesson.meetingUrl)
                                     },
                                     modifier = Modifier
-                                        .weight(1f)
+                                        .height(44.dp)
                                         .testTag("next_lesson_join_meeting_btn"),
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.filledTonalButtonColors(
@@ -350,56 +398,10 @@ fun TodayScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Public,
-                                        contentDescription = "Meeting",
-                                        modifier = Modifier.size(16.dp)
+                                        contentDescription = strings.join,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Join", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
-                            }
-
-                            val phone = nextLesson.phoneToContact
-                            if (!phone.isNullOrEmpty()) {
-                                FilledTonalButton(
-                                    onClick = {
-                                        val msg = WhatsAppHelper.createLessonReminderMessage(
-                                            studentName = nextLesson.student?.name ?: nextLesson.title,
-                                            subject = nextLesson.student?.subject ?: "lesson",
-                                            timeString = DateTimeUtils.formatTime(nextLesson.lesson.startEpochMillis),
-                                            location = nextLesson.displayAreaOrLocation
-                                        )
-                                        WhatsAppHelper.openChat(context, phone, msg)
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .testTag("next_lesson_whatsapp_btn"),
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                        containerColor = DarsiSuccessGreenBg,
-                                        contentColor = DarsiSuccessGreenDark
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Chat,
-                                        contentDescription = "WhatsApp",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("WhatsApp", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                }
-                            }
-
-                            Button(
-                                onClick = { onOpenLesson(nextLesson) },
-                                modifier = Modifier
-                                    .weight(1.1f)
-                                    .testTag("next_lesson_open_btn"),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = DarsiRoyalBlue
-                                )
-                            ) {
-                                Text("Open", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -415,7 +417,7 @@ fun TodayScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "TODAY'S LESSONS",
+                    text = strings.todayLessons,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp,
@@ -423,7 +425,7 @@ fun TodayScreen(
                 )
 
                 Text(
-                    text = "${todayLessons.size} scheduled",
+                    text = "${todayLessons.size} ${strings.scheduled}",
                     fontSize = 12.sp,
                     color = DarsiNavySubtle
                 )
@@ -451,7 +453,7 @@ fun TodayScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Default.EventNote,
+                                    imageVector = Icons.AutoMirrored.Filled.EventNote,
                                     contentDescription = null,
                                     tint = DarsiRoyalBlue,
                                     modifier = Modifier.size(28.dp)
@@ -460,14 +462,14 @@ fun TodayScreen(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
                         Text(
-                            text = "No lessons today.",
+                            text = strings.noLessonsToday,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarsiNavyDark
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Enjoy the free time — or schedule a lesson.",
+                            text = strings.enjoyFreeTime,
                             fontSize = 13.sp,
                             color = DarsiNavyMuted
                         )
@@ -484,7 +486,7 @@ fun TodayScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Book Lesson", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(strings.bookLesson, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -493,6 +495,7 @@ fun TodayScreen(
             items(todayLessons, key = { it.lesson.id }) { item ->
                 TodayLessonTimelineItem(
                     lesson = item,
+                    language = language,
                     onClick = { onOpenLesson(item) }
                 )
             }
@@ -507,7 +510,7 @@ fun TodayScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "SUMMARY",
+                        text = strings.summary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp,
@@ -518,11 +521,11 @@ fun TodayScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Lessons Today
+                        // Lessons (الحصص)
                         Column {
                             Text(
-                                text = "Lessons today",
-                                fontSize = 11.sp,
+                                text = if (isArabic) "الحصص" else "Lessons",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -534,11 +537,11 @@ fun TodayScreen(
                             )
                         }
 
-                        // Payments received today (Soft green)
+                        // Received (المحصل)
                         Column {
                             Text(
-                                text = "Received today",
-                                fontSize = 11.sp,
+                                text = if (isArabic) "المحصل" else "Received",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -550,11 +553,11 @@ fun TodayScreen(
                             )
                         }
 
-                        // Amount currently due (Restrained coral if overdue)
+                        // Due (المستحق)
                         Column {
                             Text(
-                                text = "Amount due",
-                                fontSize = 11.sp,
+                                text = if (isArabic) "المستحق" else "Due",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -579,6 +582,7 @@ fun TodayScreen(
 @Composable
 fun TodayLessonTimelineItem(
     lesson: LessonWithDetails,
+    language: String = "en",
     onClick: () -> Unit
 ) {
     DarsiCard(
@@ -641,7 +645,7 @@ fun TodayLessonTimelineItem(
                         fontWeight = FontWeight.Bold,
                         color = DarsiNavyDark
                     )
-                    StatusBadge(status = lesson.lesson.status)
+                    StatusBadge(status = lesson.lesson.status, language = language)
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -674,7 +678,7 @@ fun TodayLessonTimelineItem(
                 if (lesson.lesson.topicCovered.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Topic: ${lesson.lesson.topicCovered}",
+                        text = "${if (language == "ar") "الموضوع" else "Topic"}: ${lesson.lesson.topicCovered}",
                         fontSize = 11.sp,
                         color = DarsiRoyalBlueDark,
                         fontWeight = FontWeight.Medium

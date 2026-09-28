@@ -51,16 +51,18 @@ import com.example.ui.theme.DarsiSurfaceSecondary
 @Composable
 fun StatusBadge(
     status: String,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
+    val isArabic = language == "ar"
     // Soft green for completed, Amber for upcoming/scheduled, Restrained coral for absent/cancelled
     val (bgColor, borderColor, dotColor, textColor, label) = when (status) {
-        "COMPLETED" -> Quintuple(DarsiSuccessGreenBg, DarsiSuccessGreenBorder, DarsiSuccessGreen, DarsiSuccessGreenDark, "Completed")
-        "SCHEDULED" -> Quintuple(DarsiAmberBg, DarsiAmberBorder, DarsiAmber, DarsiAmberDark, "Upcoming")
-        "ABSENT" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, "Absent")
-        "CANCELLED_BY_STUDENT" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, "Cancelled (Student)")
-        "CANCELLED_BY_TUTOR" -> Quintuple(DarsiSurfaceSecondary, DarsiBorder, DarsiNavySubtle, DarsiNavyMuted, "Cancelled (Tutor)")
-        "NO_SHOW" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, "No Show")
+        "COMPLETED" -> Quintuple(DarsiSuccessGreenBg, DarsiSuccessGreenBorder, DarsiSuccessGreen, DarsiSuccessGreenDark, if (isArabic) "مكتملة" else "Completed")
+        "SCHEDULED" -> Quintuple(DarsiAmberBg, DarsiAmberBorder, DarsiAmber, DarsiAmberDark, if (isArabic) "قادمة" else "Upcoming")
+        "ABSENT" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, if (isArabic) "غائب" else "Absent")
+        "CANCELLED_BY_STUDENT" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, if (isArabic) "ملغاة (طالب)" else "Cancelled (Student)")
+        "CANCELLED_BY_TUTOR" -> Quintuple(DarsiSurfaceSecondary, DarsiBorder, DarsiNavySubtle, DarsiNavyMuted, if (isArabic) "ملغاة (معلم)" else "Cancelled (Tutor)")
+        "NO_SHOW" -> Quintuple(DarsiCoralRedBg, DarsiCoralRedBorder, DarsiCoralRed, DarsiCoralRedDark, if (isArabic) "لم يحضر" else "No Show")
         else -> Quintuple(DarsiSurfaceSecondary, DarsiBorder, DarsiNavySubtle, DarsiNavy, status)
     }
 
@@ -98,8 +100,10 @@ fun PaymentStatusBadge(
     balanceDue: Double,
     currency: String,
     packageInfo: String? = null,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
+    val isArabic = language == "ar"
     if (packageInfo != null) {
         // Active Package indicator in soft amber
         Surface(
@@ -136,7 +140,7 @@ fun PaymentStatusBadge(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Paid",
+                    text = if (isArabic) "مسدد" else "Paid",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = DarsiSuccessGreenDark
@@ -153,7 +157,7 @@ fun PaymentStatusBadge(
         ) {
             val dueStr = if (balanceDue % 1.0 == 0.0) "${balanceDue.toInt()}" else "%.2f".format(balanceDue)
             Text(
-                text = "$currency $dueStr due",
+                text = if (isArabic) "مستحق $dueStr $currency" else "$currency $dueStr due",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = DarsiCoralRedDark,
@@ -187,8 +191,12 @@ fun DarsiCard(
 }
 
 @Composable
-fun LessonStatusBadge(status: String, modifier: Modifier = Modifier) {
-    StatusBadge(status = status, modifier = modifier)
+fun LessonStatusBadge(
+    status: String,
+    language: String = "en",
+    modifier: Modifier = Modifier
+) {
+    StatusBadge(status = status, language = language, modifier = modifier)
 }
 
 @Composable

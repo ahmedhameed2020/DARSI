@@ -76,15 +76,18 @@ fun CalendarScreen(
     onSelectDate: (Long) -> Unit,
     onOpenLesson: (LessonWithDetails) -> Unit,
     onBookLessonForDate: (String) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     var calendarViewIndex by remember { mutableIntStateOf(1) } // 0=Day, 1=Week (default), 2=Month
-    val viewModes = listOf("Day", "Week", "Month")
+    val isArabic = language == "ar"
+    val viewModes = if (isArabic) listOf("يوم", "أسبوع", "شهر") else listOf("Day", "Week", "Month")
 
     val selectedDate = remember(selectedDateEpoch) { Date(selectedDateEpoch) }
     val weekDays = remember(selectedDateEpoch) { DateTimeUtils.getDaysOfWeekForDate(selectedDate) }
-    val dayNameFormat = remember { SimpleDateFormat("EEE", Locale.US) }
-    val dayNumFormat = remember { SimpleDateFormat("d", Locale.US) }
+    val displayLocale = if (isArabic) Locale.forLanguageTag("ar") else Locale.US
+    val dayNameFormat = remember(language) { SimpleDateFormat("EEE", displayLocale) }
+    val dayNumFormat = remember(language) { SimpleDateFormat("d", displayLocale) }
 
     Column(
         modifier = modifier
@@ -137,15 +140,16 @@ fun CalendarScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val dateLocale = if (isArabic) Locale.forLanguageTag("ar") else Locale.US
             Column {
                 Text(
-                    text = DateTimeUtils.formatMonthYear(selectedDateEpoch),
+                    text = DateTimeUtils.formatMonthYear(selectedDateEpoch, dateLocale),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Text(
-                    text = DateTimeUtils.formatReadableDate(selectedDateEpoch),
+                    text = DateTimeUtils.formatReadableDate(selectedDateEpoch, dateLocale),
                     fontSize = 12.sp,
                     color = DarsiNavySubtle
                 )
@@ -158,7 +162,7 @@ fun CalendarScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.height(34.dp)
                 ) {
-                    Text("Today", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "اليوم" else "Today", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -276,14 +280,14 @@ fun CalendarScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "No lessons on this day",
+                                text = if (isArabic) "لا توجد حصص في هذا اليوم" else "No lessons on this day",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavy
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Tap below to schedule a lesson for this date.",
+                                text = if (isArabic) "اضغط أدناه لإضافة حصة في هذا التاريخ." else "Tap below to schedule a lesson for this date.",
                                 fontSize = 12.sp,
                                 color = DarsiNavyMuted,
                                 textAlign = TextAlign.Center
@@ -303,7 +307,7 @@ fun CalendarScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Schedule Lesson", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(if (isArabic) "إضافة حصة" else "Schedule Lesson", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -312,6 +316,7 @@ fun CalendarScreen(
                 items(lessonsForSelectedDate, key = { it.lesson.id }) { item ->
                     TodayLessonTimelineItem(
                         lesson = item,
+                        language = language,
                         onClick = { onOpenLesson(item) }
                     )
                 }
@@ -337,7 +342,7 @@ fun CalendarScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Add another lesson on ${dayNumFormat.format(selectedDate)} ${dayNameFormat.format(selectedDate)}",
+                        text = if (isArabic) "إضافة حصة أخرى في يوم ${dayNameFormat.format(selectedDate)} ${dayNumFormat.format(selectedDate)}" else "Add another lesson on ${dayNumFormat.format(selectedDate)} ${dayNameFormat.format(selectedDate)}",
                         fontSize = 13.sp,
                         color = DarsiRoyalBlue,
                         fontWeight = FontWeight.SemiBold

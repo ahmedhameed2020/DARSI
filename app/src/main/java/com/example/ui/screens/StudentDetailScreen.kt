@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +27,10 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -116,13 +117,19 @@ fun StudentDetailScreen(
     onOpenLesson: (LessonWithDetails) -> Unit,
     onCreatePackage: (PackageEntity) -> Unit,
     onDeleteStudent: (Long) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     val student = details.student
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0=Overview, 1=Lessons, 2=Payments, 3=Packages & Plans, 4=Notes
-    val tabs = listOf("Overview", "Lessons (${lessons.size})", "Payments (${payments.size})", "Packages & Plans", "Notes (${notes.size})")
+    var selectedTab by remember { mutableIntStateOf(0) } // 0=Overview, 1=Lessons, 2=Payments, 3=Notes
+    val tabs = if (isArabic) {
+        listOf("نظرة عامة", "الحصص (${lessons.size})", "المدفوعات (${payments.size})", "الملاحظات (${notes.size})")
+    } else {
+        listOf("Overview", "Lessons (${lessons.size})", "Payments (${payments.size})", "Notes (${notes.size})")
+    }
 
     var privateNotesText by remember(student.privateNotes) { mutableStateOf(student.privateNotes) }
     var notesSavedMessage by remember { mutableStateOf(false) }
@@ -151,12 +158,12 @@ fun StudentDetailScreen(
             IconButton(onClick = onBack, modifier = Modifier.testTag("student_detail_back_btn")) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = if (isArabic) "رجوع" else "Back",
                     tint = DarsiNavy
                 )
             }
             Text(
-                text = "Student Profile",
+                text = if (isArabic) "ملف الطالب" else "Student Profile",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarsiNavy,
@@ -165,14 +172,14 @@ fun StudentDetailScreen(
             IconButton(onClick = { showEditStudentDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Student",
+                    contentDescription = if (isArabic) "تعديل الطالب" else "Edit Student",
                     tint = DarsiRoyalBlue
                 )
             }
             IconButton(onClick = { showDeleteConfirmDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Student",
+                    contentDescription = if (isArabic) "حذف الطالب" else "Delete Student",
                     tint = DarsiCoralRed
                 )
             }
@@ -210,29 +217,35 @@ fun StudentDetailScreen(
                         balanceDue = details.balanceDue,
                         currency = currency,
                         packageInfo = details.activePackage?.let {
-                            "${it.totalLessons - it.usedLessons} left"
-                        }
+                            if (isArabic) "${it.totalLessons - it.usedLessons} متبقية" else "${it.totalLessons - it.usedLessons} left"
+                        },
+                        language = language
                     )
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Quick Action Buttons: WhatsApp Chat, WhatsApp Reminder, Call, + Payment
+                // 3 Quick Action Buttons: WhatsApp, Call, Book Lesson
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // 1. WhatsApp
                     FilledTonalButton(
                         onClick = {
                             val msg = WhatsAppHelper.createLessonReminderMessage(
                                 studentName = student.name,
                                 subject = student.subject,
-                                timeString = "our upcoming session",
-                                location = "scheduled location"
+                                timeString = if (isArabic) "موعدنا القادم" else "our upcoming session",
+                                location = if (isArabic) "الموقع المحدد" else "scheduled location",
+                                language = language
                             )
                             WhatsAppHelper.openChat(context, student.phone, msg)
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .testTag("student_action_whatsapp"),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = DarsiSuccessGreenBg,
@@ -240,62 +253,53 @@ fun StudentDetailScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Chat,
+                            imageVector = Icons.AutoMirrored.Outlined.Chat,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Chat", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (isArabic) "واتساب" else "WhatsApp", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
 
-                    if (details.balanceDue > 0) {
-                        FilledTonalButton(
-                            onClick = {
-                                val msg = "Hello ${student.name}, this is $tutorName regarding your private lessons in ${student.subject}. The current outstanding balance is ${CurrencyUtils.format(details.balanceDue, currency)} for ${details.completedLessonsCount} completed lessons. Please let me know when you can arrange payment. Thank you!"
-                                WhatsAppHelper.openChat(context, student.phone, msg)
-                            },
-                            modifier = Modifier.weight(1.2f),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = DarsiAmberBg,
-                                contentColor = DarsiAmber
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Payments,
-                                contentDescription = null,
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text("Remind Due", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
+                    // 2. Call
                     FilledTonalButton(
                         onClick = { WhatsAppHelper.dialPhone(context, student.phone) },
-                        modifier = Modifier.weight(0.9f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .testTag("student_action_call"),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = DarsiRoyalBlueSubtle,
-                            contentColor = DarsiRoyalBlue
+                            containerColor = DarsiSurfaceVariant,
+                            contentColor = DarsiNavy
                         )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Call,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Call", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (isArabic) "اتصال" else "Call", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
 
+                    // 3. Book Lesson
                     Button(
-                        onClick = { onRecordPayment(student.id) },
-                        modifier = Modifier.weight(1.1f),
+                        onClick = { onBookLesson(student.id) },
+                        modifier = Modifier
+                            .weight(1.2f)
+                            .height(44.dp)
+                            .testTag("student_action_book_lesson"),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                     ) {
-                        Text("+ Pay", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (isArabic) "حجز حصة" else "Book Lesson", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -367,25 +371,26 @@ fun StudentDetailScreen(
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "NEXT SCHEDULED LESSON",
+                                            text = if (isArabic) "الحصة القادمة المجدولة" else "NEXT SCHEDULED LESSON",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiNavySubtle
                                         )
+                                        val dateLocale = if (isArabic) Locale.forLanguageTag("ar") else Locale.US
                                         Text(
-                                            text = "${DateTimeUtils.formatReadableDate(details.nextLesson.startEpochMillis)} · ${DateTimeUtils.formatTime(details.nextLesson.startEpochMillis)}",
+                                            text = "${DateTimeUtils.formatReadableDate(details.nextLesson.startEpochMillis, dateLocale)} · ${DateTimeUtils.formatTime(details.nextLesson.startEpochMillis, dateLocale)}",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiNavy
                                         )
                                         Text(
-                                            text = DateTimeUtils.getCountdownString(details.nextLesson.startEpochMillis, details.nextLesson.endEpochMillis),
+                                            text = DateTimeUtils.getCountdownString(details.nextLesson.startEpochMillis, details.nextLesson.endEpochMillis, isArabic = isArabic),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = DarsiRoyalBlue
                                         )
                                     }
-                                    LessonStatusBadge(status = details.nextLesson.status)
+                                    LessonStatusBadge(status = details.nextLesson.status, language = language)
                                 }
                             }
                         }
@@ -396,7 +401,7 @@ fun StudentDetailScreen(
                         DarsiCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "STUDENT & CONTACT INFORMATION",
+                                    text = if (isArabic) "معلومات الطالب والتواصل" else "STUDENT & CONTACT INFORMATION",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.8.sp,
@@ -404,19 +409,43 @@ fun StudentDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                DetailRow("Student Phone", student.phone)
+                                DetailRow(if (isArabic) "رقم الطالب" else "Student Phone", student.phone)
                                 if (!student.parentPhone.isNullOrEmpty()) {
-                                    DetailRow("Parent Phone", student.parentPhone)
+                                    DetailRow(if (isArabic) "رقم ولي الأمر" else "Parent Phone", student.parentPhone)
                                 }
                                 if (!student.school.isNullOrEmpty()) {
-                                    DetailRow("School", student.school)
+                                    DetailRow(if (isArabic) "المدرسة" else "School", student.school)
                                 }
-                                DetailRow("Grade", student.grade)
-                                DetailRow("Subject", student.subject)
-                                DetailRow("Default Duration", "${student.defaultDurationMinutes} min")
-                                DetailRow("Default Rate", CurrencyUtils.format(student.defaultPrice, currency))
-                                DetailRow("Payment Plan", student.paymentType.replace("_", " "))
-                                DetailRow("Status", student.status)
+                                DetailRow(if (isArabic) "الصف" else "Grade", student.grade)
+                                DetailRow(if (isArabic) "المادة" else "Subject", student.subject)
+                                DetailRow(if (isArabic) "المدة الافتراضية" else "Default Duration", if (isArabic) "${student.defaultDurationMinutes} دقيقة" else "${student.defaultDurationMinutes} min")
+                                DetailRow(if (isArabic) "السعر الافتراضي" else "Default Rate", CurrencyUtils.format(student.defaultPrice, currency))
+                                DetailRow(
+                                    if (isArabic) "نظام المحاسبة" else "Payment Plan",
+                                    if (isArabic) {
+                                        when (student.paymentType) {
+                                            "PER_LESSON" -> "لكل حصة"
+                                            "MONTHLY" -> "شهري"
+                                            "PACKAGE" -> "باقة"
+                                            else -> student.paymentType
+                                        }
+                                    } else {
+                                        student.paymentType.replace("_", " ")
+                                    }
+                                )
+                                DetailRow(
+                                    if (isArabic) "الحالة" else "Status",
+                                    if (isArabic) {
+                                        when (student.status) {
+                                            "ACTIVE" -> "نشط"
+                                            "ARCHIVED" -> "مؤرشف"
+                                            "PAUSED" -> "متوقف مؤقتاً"
+                                            else -> student.status
+                                        }
+                                    } else {
+                                        student.status
+                                    }
+                                )
                             }
                         }
                     }
@@ -425,7 +454,8 @@ fun StudentDetailScreen(
                         // Student Location Card
                         StudentLocationCard(
                             student = student,
-                            onEditLocation = { showLocationEditorDialog = true }
+                            onEditLocation = { showLocationEditorDialog = true },
+                            language = language
                         )
                     }
 
@@ -434,7 +464,7 @@ fun StudentDetailScreen(
                         DarsiCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "ACTIVITY & FINANCIAL SUMMARY",
+                                    text = if (isArabic) "ملخص النشاط والوضع المالي" else "ACTIVITY & FINANCIAL SUMMARY",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.8.sp,
@@ -442,11 +472,11 @@ fun StudentDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                DetailRow("Completed Lessons", "${details.completedLessonsCount}")
-                                DetailRow("Scheduled Upcoming", "${details.scheduledLessonsCount}")
-                                DetailRow("Total Billed", CurrencyUtils.format(details.totalBilled, currency))
-                                DetailRow("Total Paid", CurrencyUtils.format(details.totalPaid, currency))
-                                DetailRow("Balance Due", CurrencyUtils.format(details.balanceDue, currency))
+                                DetailRow(if (isArabic) "الحصص المكتملة" else "Completed Lessons", "${details.completedLessonsCount}")
+                                DetailRow(if (isArabic) "الحصص المجدولة" else "Scheduled Upcoming", "${details.scheduledLessonsCount}")
+                                DetailRow(if (isArabic) "إجمالي المستحق" else "Total Billed", CurrencyUtils.format(details.totalBilled, currency))
+                                DetailRow(if (isArabic) "إجمالي المدفوع" else "Total Paid", CurrencyUtils.format(details.totalPaid, currency))
+                                DetailRow(if (isArabic) "المتبقي / الرصيد" else "Balance Due", CurrencyUtils.format(details.balanceDue, currency))
                             }
                         }
                     }
@@ -461,7 +491,7 @@ fun StudentDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "LESSONS",
+                                text = if (isArabic) "الحصص" else "LESSONS",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavySubtle
@@ -473,7 +503,7 @@ fun StudentDetailScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Schedule Lesson", fontSize = 12.sp)
+                                Text(if (isArabic) "إضافة حصة" else "Schedule Lesson", fontSize = 12.sp)
                             }
                         }
                     }
@@ -484,7 +514,13 @@ fun StudentDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            listOf("ALL" to "All", "SCHEDULED" to "Scheduled", "COMPLETED" to "Completed", "ABSENT" to "Absent", "CANCELLED" to "Cancelled").forEach { (code, label) ->
+                            listOf(
+                                "ALL" to (if (isArabic) "الكل" else "All"),
+                                "SCHEDULED" to (if (isArabic) "المجدولة" else "Scheduled"),
+                                "COMPLETED" to (if (isArabic) "المكتملة" else "Completed"),
+                                "ABSENT" to (if (isArabic) "الغياب" else "Absent"),
+                                "CANCELLED" to (if (isArabic) "الملغاة" else "Cancelled")
+                            ).forEach { (code, label) ->
                                 val isSelected = (lessonFilter == code)
                                 FilterChip(
                                     selected = isSelected,
@@ -515,7 +551,7 @@ fun StudentDetailScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "No lessons found for this filter.",
+                                        text = if (isArabic) "لا توجد حصص بهذا التصنيف." else "No lessons found for this filter.",
                                         fontSize = 13.sp,
                                         color = DarsiNavyMuted
                                     )
@@ -536,24 +572,25 @@ fun StudentDetailScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        val lessonDateLocale = if (isArabic) Locale.forLanguageTag("ar") else Locale.US
                                         Text(
-                                            text = "${DateTimeUtils.formatReadableDate(l.startEpochMillis)} · ${DateTimeUtils.formatTime(l.startEpochMillis)}",
+                                            text = "${DateTimeUtils.formatReadableDate(l.startEpochMillis, lessonDateLocale)} · ${DateTimeUtils.formatTime(l.startEpochMillis, lessonDateLocale)}",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiNavy
                                         )
-                                        LessonStatusBadge(status = l.status)
+                                        LessonStatusBadge(status = l.status, language = language)
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "Duration: ${l.durationMinutes} min · ${CurrencyUtils.format(if (l.price > 0) l.price else student.defaultPrice, currency)} · ${l.location}",
+                                        text = if (isArabic) "المدة: ${l.durationMinutes} دقيقة · ${CurrencyUtils.format(if (l.price > 0) l.price else student.defaultPrice, currency)} · ${l.location}" else "Duration: ${l.durationMinutes} min · ${CurrencyUtils.format(if (l.price > 0) l.price else student.defaultPrice, currency)} · ${l.location}",
                                         fontSize = 12.sp,
                                         color = DarsiNavyMuted
                                     )
                                     if (l.topicCovered.isNotEmpty()) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Topic: ${l.topicCovered}",
+                                            text = if (isArabic) "الموضوع: ${l.topicCovered}" else "Topic: ${l.topicCovered}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = DarsiNavy
@@ -561,7 +598,7 @@ fun StudentDetailScreen(
                                     }
                                     if (l.homework.isNotEmpty()) {
                                         Text(
-                                            text = "Homework: ${l.homework}",
+                                            text = if (isArabic) "الواجب: ${l.homework}" else "Homework: ${l.homework}",
                                             fontSize = 12.sp,
                                             color = DarsiNavyMuted
                                         )
@@ -581,7 +618,7 @@ fun StudentDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "PAYMENT HISTORY",
+                                text = if (isArabic) "سجل المدفوعات" else "PAYMENT HISTORY",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavySubtle
@@ -593,7 +630,7 @@ fun StudentDetailScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Record Payment", fontSize = 12.sp)
+                                Text(if (isArabic) "تسجيل دفعة" else "Record Payment", fontSize = 12.sp)
                             }
                         }
                     }
@@ -608,13 +645,13 @@ fun StudentDetailScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "No payments recorded yet.",
+                                        text = if (isArabic) "لا توجد مدفوعات مسجلة بعد." else "No payments recorded yet.",
                                         fontSize = 13.sp,
                                         color = DarsiNavyMuted
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Tap '+ Record Payment' to log cash, bank transfer, or online fees.",
+                                        text = if (isArabic) "اضغط على '+ تسجيل دفعة' لتسجيل المبالغ النقدية أو التحويلات." else "Tap '+ Record Payment' to log cash, bank transfer, or online fees.",
                                         fontSize = 12.sp,
                                         color = DarsiNavySubtle
                                     )
@@ -638,8 +675,20 @@ fun StudentDetailScreen(
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiSuccessGreenDark
                                         )
+                                        val methodDisplay = when (p.paymentMethod) {
+                                            "CASH" -> if (isArabic) "نقداً" else "Cash"
+                                            "BANK_TRANSFER" -> if (isArabic) "تحويل بنكي" else "Bank Transfer"
+                                            "ONLINE" -> if (isArabic) "أونلاين" else "Online"
+                                            else -> p.paymentMethod.replace("_", " ")
+                                        }
+                                        val forDisplay = when (p.paymentFor) {
+                                            "LESSON" -> if (isArabic) "حصة" else "Lesson"
+                                            "PACKAGE" -> if (isArabic) "باقة" else "Package"
+                                            "MONTHLY" -> if (isArabic) "شهري" else "Monthly"
+                                            else -> p.paymentFor
+                                        }
                                         Text(
-                                            text = "${DateTimeUtils.formatDate(p.date)} · ${p.paymentMethod.replace("_", " ")} (${p.paymentFor})",
+                                            text = "${DateTimeUtils.formatDate(p.date)} · $methodDisplay ($forDisplay)",
                                             fontSize = 12.sp,
                                             color = DarsiNavyMuted
                                         )
@@ -656,7 +705,7 @@ fun StudentDetailScreen(
                                         shape = RoundedCornerShape(8.dp)
                                     ) {
                                         Text(
-                                            text = "PAID",
+                                            text = if (isArabic) "تم الدفع" else "PAID",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiSuccessGreenDark,
@@ -667,18 +716,17 @@ fun StudentDetailScreen(
                             }
                         }
                     }
-                }
 
-                3 -> {
-                    // TAB 3: PACKAGES & PLANS
+                    // Packages & Prepaid Plans section inside Payments tab
                     item {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "PAYMENT PLAN & PACKAGES",
+                                text = if (isArabic) "الباقات والاشتراكات" else "PACKAGES & PREPAID PLANS",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavySubtle
@@ -690,7 +738,7 @@ fun StudentDetailScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("New Package", fontSize = 12.sp)
+                                Text(if (isArabic) "باقة جديدة" else "New Package", fontSize = 12.sp)
                             }
                         }
                     }
@@ -700,7 +748,7 @@ fun StudentDetailScreen(
                         DarsiCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "ACTIVE PLAN",
+                                    text = if (isArabic) "الخطة الحالية" else "ACTIVE PLAN",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = DarsiNavySubtle
@@ -708,9 +756,9 @@ fun StudentDetailScreen(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = when (student.paymentType) {
-                                        "PACKAGE" -> "Prepaid Package"
-                                        "MONTHLY" -> "Monthly Flat Rate"
-                                        else -> "Per Lesson (Pay as you go)"
+                                        "PACKAGE" -> if (isArabic) "باقة مسبقة الدفع" else "Prepaid Package"
+                                        "MONTHLY" -> if (isArabic) "اشتراك شهري ثابت" else "Monthly Flat Rate"
+                                        else -> if (isArabic) "لكل حصة (دفع أولاً بأول)" else "Per Lesson (Pay as you go)"
                                     },
                                     fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold,
@@ -718,7 +766,7 @@ fun StudentDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Rate: ${CurrencyUtils.format(student.defaultPrice, currency)} ${if (student.paymentType == "MONTHLY") "/ month" else "/ lesson"}",
+                                    text = if (isArabic) "السعر: ${CurrencyUtils.format(student.defaultPrice, currency)} ${if (student.paymentType == "MONTHLY") "/ شهر" else "/ حصة"}" else "Rate: ${CurrencyUtils.format(student.defaultPrice, currency)} ${if (student.paymentType == "MONTHLY") "/ month" else "/ lesson"}",
                                     fontSize = 13.sp,
                                     color = DarsiNavyMuted
                                 )
@@ -728,13 +776,13 @@ fun StudentDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Payment arrangement:", fontSize = 11.sp, color = DarsiNavySubtle)
+                                    Text(if (isArabic) "نظام المحاسبة:" else "Payment arrangement:", fontSize = 11.sp, color = DarsiNavySubtle)
                                     OutlinedButton(
                                         onClick = { showEditStudentDialog = true },
                                         shape = RoundedCornerShape(8.dp),
                                         modifier = Modifier.height(32.dp)
                                     ) {
-                                        Text("Change Plan", fontSize = 11.sp)
+                                        Text(if (isArabic) "تغيير الخطة" else "Change Plan", fontSize = 11.sp)
                                     }
                                 }
                             }
@@ -783,12 +831,12 @@ fun StudentDetailScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "${pkg.usedLessons} of ${pkg.totalLessons} lessons completed",
+                                            text = if (isArabic) "${pkg.usedLessons} من ${pkg.totalLessons} حصص مكتملة" else "${pkg.usedLessons} of ${pkg.totalLessons} lessons completed",
                                             fontSize = 12.sp,
                                             color = DarsiNavyMuted
                                         )
                                         Text(
-                                            text = "$remaining remaining",
+                                            text = if (isArabic) "$remaining متبقية" else "$remaining remaining",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (remaining <= 1) DarsiCoralRed else DarsiNavy
@@ -802,7 +850,7 @@ fun StudentDetailScreen(
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Text(
-                                                text = "⚠️ Package almost depleted. Consider renewing before the next lesson.",
+                                                text = if (isArabic) "⚠️ أوشكت الباقة على الانتهاء. فكّر في تجديدها قبل الحصة القادمة." else "⚠️ Package almost depleted. Consider renewing before the next lesson.",
                                                 fontSize = 11.sp,
                                                 color = DarsiAmber,
                                                 modifier = Modifier.padding(8.dp)
@@ -815,8 +863,8 @@ fun StudentDetailScreen(
                     }
                 }
 
-                4 -> {
-                    // TAB 4: NOTES & PROGRESS
+                3 -> {
+                    // TAB 3: NOTES & PROGRESS
                     item {
                         DarsiCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(16.dp)) {
@@ -826,7 +874,7 @@ fun StudentDetailScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "PRIVATE TUTOR NOTES",
+                                        text = if (isArabic) "ملاحظات المعلم الخاصة" else "PRIVATE TUTOR NOTES",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         letterSpacing = 0.8.sp,
@@ -834,7 +882,7 @@ fun StudentDetailScreen(
                                     )
                                     if (notesSavedMessage) {
                                         Text(
-                                            text = "Saved!",
+                                            text = if (isArabic) "تم الحفظ!" else "Saved!",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = DarsiSuccessGreenDark
@@ -848,7 +896,7 @@ fun StudentDetailScreen(
                                         privateNotesText = it
                                         notesSavedMessage = false
                                     },
-                                    placeholder = { Text("Confidential observations, syllabus progress, parent requests...") },
+                                    placeholder = { Text(if (isArabic) "ملاحظات سرية، تقدم المنهج، طلبات ولي الأمر..." else "Confidential observations, syllabus progress, parent requests...") },
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(10.dp),
                                     minLines = 3
@@ -863,7 +911,7 @@ fun StudentDetailScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue),
                                     modifier = Modifier.align(Alignment.End)
                                 ) {
-                                    Text("Save Notes", fontSize = 12.sp)
+                                    Text(if (isArabic) "حفظ الملاحظات" else "Save Notes", fontSize = 12.sp)
                                 }
                             }
                         }
@@ -876,7 +924,7 @@ fun StudentDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "LEARNING LOG / OBSERVATIONS",
+                                text = if (isArabic) "سجل الملاحظات والتقدم" else "LEARNING LOG / OBSERVATIONS",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DarsiNavySubtle
@@ -886,9 +934,9 @@ fun StudentDetailScreen(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                             ) {
-                                Icon(Icons.Default.NoteAdd, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Add Entry", fontSize = 12.sp)
+                                Text(if (isArabic) "إضافة ملاحظة" else "Add Entry", fontSize = 12.sp)
                             }
                         }
                     }
@@ -903,7 +951,7 @@ fun StudentDetailScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "No progress logs added yet.",
+                                        text = if (isArabic) "لا توجد ملاحظات مسجلة بعد." else "No progress logs added yet.",
                                         fontSize = 13.sp,
                                         color = DarsiNavyMuted
                                     )
@@ -977,67 +1025,67 @@ fun StudentDetailScreen(
 
         AlertDialog(
             onDismissRequest = { showEditStudentDialog = false },
-            title = { Text("Edit Student Profile") },
+            title = { Text(if (isArabic) "تعديل ملف الطالب" else "Edit Student Profile") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text("Full Name") },
+                        label = { Text(if (isArabic) "الاسم الكامل" else "Full Name") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editPhone,
                         onValueChange = { editPhone = it },
-                        label = { Text("Phone Number") },
+                        label = { Text(if (isArabic) "رقم الهاتف" else "Phone Number") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editParentPhone,
                         onValueChange = { editParentPhone = it },
-                        label = { Text("Parent Phone (Optional)") },
+                        label = { Text(if (isArabic) "هاتف ولي الأمر (اختياري)" else "Parent Phone (Optional)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editSubject,
                         onValueChange = { editSubject = it },
-                        label = { Text("Subject") },
+                        label = { Text(if (isArabic) "المادة" else "Subject") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editGrade,
                         onValueChange = { editGrade = it },
-                        label = { Text("Grade") },
+                        label = { Text(if (isArabic) "الصف" else "Grade") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = editSchool,
                         onValueChange = { editSchool = it },
-                        label = { Text("School (Optional)") },
+                        label = { Text(if (isArabic) "المدرسة (اختياري)" else "School (Optional)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = editPrice.toString(),
                             onValueChange = { editPrice = it.toDoubleOrNull() ?: editPrice },
-                            label = { Text("Default Rate ($currency)") },
+                            label = { Text(if (isArabic) "السعر الافتراضي ($currency)" else "Default Rate ($currency)") },
                             modifier = Modifier.weight(1f)
                         )
                         OutlinedTextField(
                             value = editDuration.toString(),
                             onValueChange = { editDuration = it.toIntOrNull() ?: editDuration },
-                            label = { Text("Duration (min)") },
+                            label = { Text(if (isArabic) "المدة (دقيقة)" else "Duration (min)") },
                             modifier = Modifier.weight(1f)
                         )
                     }
 
-                    Text("Payment Plan:", fontSize = 12.sp, color = DarsiNavyMuted)
+                    Text(if (isArabic) "خطة الدفع:" else "Payment Plan:", fontSize = 12.sp, color = DarsiNavyMuted)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(
-                            "PER_LESSON" to "Per Lesson",
-                            "MONTHLY" to "Monthly",
-                            "PACKAGE" to "Package",
-                            "CUSTOM" to "Custom"
+                            "PER_LESSON" to (if (isArabic) "بعد كل حصة" else "Per Lesson"),
+                            "MONTHLY" to (if (isArabic) "شهري" else "Monthly"),
+                            "PACKAGE" to (if (isArabic) "باقة" else "Package"),
+                            "CUSTOM" to (if (isArabic) "مخصص" else "Custom")
                         ).forEach { (type, label) ->
                             FilterChip(
                                 selected = (editPaymentType == type),
@@ -1047,12 +1095,12 @@ fun StudentDetailScreen(
                         }
                     }
 
-                    Text("Student Status:", fontSize = 12.sp, color = DarsiNavyMuted)
+                    Text(if (isArabic) "حالة الطالب:" else "Student Status:", fontSize = 12.sp, color = DarsiNavyMuted)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(
-                            "ACTIVE" to "Active",
-                            "PAUSED" to "Paused",
-                            "FINISHED" to "Finished"
+                            "ACTIVE" to (if (isArabic) "نشط" else "Active"),
+                            "PAUSED" to (if (isArabic) "متوقف مؤقتاً" else "Paused"),
+                            "FINISHED" to (if (isArabic) "منتهي" else "Finished")
                         ).forEach { (st, label) ->
                             FilterChip(
                                 selected = (editStatus == st),
@@ -1084,12 +1132,12 @@ fun StudentDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                 ) {
-                    Text("Save Changes")
+                    Text(if (isArabic) "حفظ التغييرات" else "Save Changes")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditStudentDialog = false }) {
-                    Text("Cancel")
+                    Text(if (isArabic) "إلغاء" else "Cancel")
                 }
             }
         )
@@ -1097,22 +1145,22 @@ fun StudentDetailScreen(
 
     // Add Package Dialog
     if (showAddPackageDialog) {
-        var pkgName by remember { mutableStateOf("Lesson Package (${student.subject})") }
+        var pkgName by remember { mutableStateOf(if (isArabic) "باقة حصص (${student.subject})" else "Lesson Package (${student.subject})") }
         var totalLessons by remember { mutableIntStateOf(8) }
         var pkgPrice by remember { mutableDoubleStateOf(student.defaultPrice * 8) }
 
         AlertDialog(
             onDismissRequest = { showAddPackageDialog = false },
-            title = { Text("Add Prepaid Package") },
+            title = { Text(if (isArabic) "إضافة باقة مسبقة الدفع" else "Add Prepaid Package") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = pkgName,
                         onValueChange = { pkgName = it },
-                        label = { Text("Package Name") },
+                        label = { Text(if (isArabic) "اسم الباقة" else "Package Name") },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text("Number of Lessons:", fontSize = 12.sp, color = DarsiNavyMuted)
+                    Text(if (isArabic) "عدد الحصص:" else "Number of Lessons:", fontSize = 12.sp, color = DarsiNavyMuted)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(4, 8, 10, 12).forEach { num ->
                             val isSel = (totalLessons == num)
@@ -1122,14 +1170,14 @@ fun StudentDetailScreen(
                                     totalLessons = num
                                     pkgPrice = student.defaultPrice * num
                                 },
-                                label = { Text("$num lessons") }
+                                label = { Text(if (isArabic) "$num حصص" else "$num lessons") }
                             )
                         }
                     }
                     OutlinedTextField(
                         value = pkgPrice.toString(),
                         onValueChange = { pkgPrice = it.toDoubleOrNull() ?: pkgPrice },
-                        label = { Text("Total Package Price ($currency)") },
+                        label = { Text(if (isArabic) "إجمالي سعر الباقة ($currency)" else "Total Package Price ($currency)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -1151,12 +1199,12 @@ fun StudentDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                 ) {
-                    Text("Create Package")
+                    Text(if (isArabic) "إنشاء الباقة" else "Create Package")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddPackageDialog = false }) {
-                    Text("Cancel")
+                    Text(if (isArabic) "إلغاء" else "Cancel")
                 }
             }
         )
@@ -1170,24 +1218,28 @@ fun StudentDetailScreen(
 
         AlertDialog(
             onDismissRequest = { showAddNoteDialog = false },
-            title = { Text("Add Learning Log Entry") },
+            title = { Text(if (isArabic) "إضافة سجل تعليمي" else "Add Learning Log Entry") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = noteTitle,
                         onValueChange = { noteTitle = it },
-                        label = { Text("Title / Focus Area") },
+                        label = { Text(if (isArabic) "العنوان / محور التركيز" else "Title / Focus Area") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = noteContent,
                         onValueChange = { noteContent = it },
-                        label = { Text("Notes / Observations") },
+                        label = { Text(if (isArabic) "الملاحظات والمشاهدات" else "Notes / Observations") },
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("PROGRESS" to "Progress", "HOMEWORK" to "Homework", "EXAM" to "Exam").forEach { (code, lbl) ->
+                        listOf(
+                            "PROGRESS" to (if (isArabic) "تقدم" else "Progress"),
+                            "HOMEWORK" to (if (isArabic) "واجب" else "Homework"),
+                            "EXAM" to (if (isArabic) "اختبار" else "Exam")
+                        ).forEach { (code, lbl) ->
                             FilterChip(
                                 selected = noteCategory == code,
                                 onClick = { noteCategory = code },
@@ -1207,12 +1259,12 @@ fun StudentDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                 ) {
-                    Text("Add Entry")
+                    Text(if (isArabic) "إضافة السجل" else "Add Entry")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddNoteDialog = false }) {
-                    Text("Cancel")
+                    Text(if (isArabic) "إلغاء" else "Cancel")
                 }
             }
         )
@@ -1222,8 +1274,8 @@ fun StudentDetailScreen(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Delete Student?") },
-            text = { Text("Are you sure you want to delete ${student.name}? This will remove all their records from your device.") },
+            title = { Text(if (isArabic) "حذف الطالب؟" else "Delete Student?") },
+            text = { Text(if (isArabic) "هل أنت متأكد من حذف ${student.name}؟ سيؤدي ذلك إلى إزالة جميع سجلاته من جهازك." else "Are you sure you want to delete ${student.name}? This will remove all their records from your device.") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -1232,12 +1284,12 @@ fun StudentDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DarsiCoralRed)
                 ) {
-                    Text("Delete")
+                    Text(if (isArabic) "حذف" else "Delete")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Cancel")
+                    Text(if (isArabic) "إلغاء" else "Cancel")
                 }
             }
         )
@@ -1255,7 +1307,8 @@ fun StudentDetailScreen(
             initialLocationType = student.defaultLessonLocationType,
             initialLat = student.latitude,
             initialLng = student.longitude,
-            title = "Edit Location for ${student.name}",
+            title = if (isArabic) "تعديل موقع ${student.name}" else "Edit Location for ${student.name}",
+            language = language,
             onDismiss = { showLocationEditorDialog = false },
             onSave = { label, area, address, mapsLink, notes, travelTime, locType, lat, lng ->
                 val updated = student.copy(

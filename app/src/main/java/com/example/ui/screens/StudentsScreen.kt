@@ -68,8 +68,10 @@ fun StudentsScreen(
     onOpenGroup: (Long) -> Unit,
     onAddStudent: () -> Unit,
     onAddGroup: () -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
+    val isArabic = language == "ar"
     var searchQuery by remember { mutableStateOf("") }
     var selectedSection by remember { mutableIntStateOf(0) } // 0=Students, 1=Groups
     var selectedFilter by remember { mutableStateOf("All") } // All, Active, Due, Package
@@ -111,7 +113,7 @@ fun StudentsScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search by student, group, or subject...", fontSize = 13.sp) },
+            placeholder = { Text(if (isArabic) "ابحث بالطالب أو المجموعة أو المادة..." else "Search by student, group, or subject...", fontSize = 13.sp) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -147,7 +149,7 @@ fun StudentsScreen(
                 onClick = { selectedSection = 0 },
                 text = {
                     Text(
-                        "Students (${students.size})",
+                        if (isArabic) "الطلاب (${students.size})" else "Students (${students.size})",
                         fontWeight = if (selectedSection == 0) FontWeight.Bold else FontWeight.Medium,
                         color = if (selectedSection == 0) DarsiRoyalBlue else DarsiNavyMuted
                     )
@@ -158,7 +160,7 @@ fun StudentsScreen(
                 onClick = { selectedSection = 1 },
                 text = {
                     Text(
-                        "Groups (${groups.size})",
+                        if (isArabic) "المجموعات (${groups.size})" else "Groups (${groups.size})",
                         fontWeight = if (selectedSection == 1) FontWeight.Bold else FontWeight.Medium,
                         color = if (selectedSection == 1) DarsiRoyalBlue else DarsiNavyMuted
                     )
@@ -175,12 +177,13 @@ fun StudentsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val chips = listOf("All", "Active", "Due", "Package")
+                val chipLabels = if (isArabic) mapOf("All" to "الكل", "Active" to "نشط", "Due" to "مستحق", "Package" to "باقة") else emptyMap()
                 items(chips) { chip ->
                     val isSelected = (selectedFilter == chip)
                     FilterChip(
                         selected = isSelected,
                         onClick = { selectedFilter = chip },
-                        label = { Text(chip, fontSize = 12.sp) },
+                        label = { Text(chipLabels[chip] ?: chip, fontSize = 12.sp) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = DarsiRoyalBlueSubtle,
                             selectedLabelColor = DarsiRoyalBlue
@@ -213,14 +216,14 @@ fun StudentsScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "No students found",
+                                    text = if (isArabic) "لم يتم العثور على طلاب" else "No students found",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = DarsiNavy
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Add your first student to get started.",
+                                    text = if (isArabic) "أضف طالبك الأول للبدء." else "Add your first student to get started.",
                                     fontSize = 13.sp,
                                     color = DarsiNavyMuted
                                 )
@@ -232,7 +235,7 @@ fun StudentsScreen(
                                 ) {
                                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Add Student", fontSize = 13.sp)
+                                    Text(if (isArabic) "إضافة طالب" else "Add Student", fontSize = 13.sp)
                                 }
                             }
                         }
@@ -242,6 +245,7 @@ fun StudentsScreen(
                         StudentCardItem(
                             item = item,
                             currency = currency,
+                            language = language,
                             onClick = { onOpenStudent(item.student.id) }
                         )
                     }
@@ -273,14 +277,14 @@ fun StudentsScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "No groups yet",
+                                    text = if (isArabic) "لا توجد مجموعات بعد" else "No groups yet",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = DarsiNavy
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Create student groups for batch lessons.",
+                                    text = if (isArabic) "أنشئ مجموعات طلاب للحصص الجماعية." else "Create student groups for batch lessons.",
                                     fontSize = 13.sp,
                                     color = DarsiNavyMuted
                                 )
@@ -292,7 +296,7 @@ fun StudentsScreen(
                                 ) {
                                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Add Group", fontSize = 13.sp)
+                                    Text(if (isArabic) "إضافة مجموعة" else "Add Group", fontSize = 13.sp)
                                 }
                             }
                         }
@@ -302,6 +306,7 @@ fun StudentsScreen(
                         GroupCardItem(
                             group = group,
                             currency = currency,
+                            language = language,
                             onClick = { onOpenGroup(group.id) }
                         )
                     }
@@ -319,12 +324,14 @@ fun StudentsScreen(
 fun StudentCardItem(
     item: StudentWithBalance,
     currency: String,
+    language: String = "en",
     onClick: () -> Unit
 ) {
+    val isArabic = language == "ar"
     val student = item.student
     val packageInfo = item.activePackage?.let {
         val remaining = it.totalLessons - it.usedLessons
-        "Package: $remaining remaining"
+        if (isArabic) "باقة: $remaining متبقية" else "Package: $remaining remaining"
     }
 
     DarsiCard(
@@ -373,7 +380,8 @@ fun StudentCardItem(
                 PaymentStatusBadge(
                     balanceDue = item.balanceDue,
                     currency = currency,
-                    packageInfo = packageInfo
+                    packageInfo = packageInfo,
+                    language = language
                 )
             }
 
@@ -385,10 +393,11 @@ fun StudentCardItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val dateLocale = if (isArabic) java.util.Locale.forLanguageTag("ar") else java.util.Locale.US
                 val nextLessonText = if (item.nextLesson != null) {
-                    "Next: ${DateTimeUtils.formatReadableDate(item.nextLesson.startEpochMillis)} at ${DateTimeUtils.formatTime(item.nextLesson.startEpochMillis)}"
+                    if (isArabic) "القادمة: ${DateTimeUtils.formatReadableDate(item.nextLesson.startEpochMillis, dateLocale)} في ${DateTimeUtils.formatTime(item.nextLesson.startEpochMillis, dateLocale)}" else "Next: ${DateTimeUtils.formatReadableDate(item.nextLesson.startEpochMillis)} at ${DateTimeUtils.formatTime(item.nextLesson.startEpochMillis)}"
                 } else {
-                    "No upcoming lessons"
+                    if (isArabic) "لا توجد حصص قادمة" else "No upcoming lessons"
                 }
 
                 Text(
@@ -398,7 +407,7 @@ fun StudentCardItem(
                 )
 
                 Text(
-                    text = "${item.completedLessonsCount} completed",
+                    text = if (isArabic) "${item.completedLessonsCount} مكتملة" else "${item.completedLessonsCount} completed",
                     fontSize = 11.sp,
                     color = DarsiNavySubtle
                 )
@@ -411,8 +420,10 @@ fun StudentCardItem(
 fun GroupCardItem(
     group: GroupEntity,
     currency: String,
+    language: String = "en",
     onClick: () -> Unit
 ) {
+    val isArabic = language == "ar"
     DarsiCard(
         onClick = onClick,
         modifier = Modifier
@@ -461,7 +472,7 @@ fun GroupCardItem(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "$currency ${group.defaultPrice.toInt()}/lesson",
+                        text = if (isArabic) "$currency ${group.defaultPrice.toInt()}/حصة" else "$currency ${group.defaultPrice.toInt()}/lesson",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = DarsiNavy,
