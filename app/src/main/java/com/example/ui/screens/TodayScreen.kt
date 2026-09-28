@@ -84,11 +84,14 @@ fun TodayScreen(
     todayLessons: List<LessonWithDetails>,
     todaySummary: PaymentSummary,
     travelBufferMinutes: Int = 10,
+    language: String = "en",
     onOpenLesson: (LessonWithDetails) -> Unit,
     onBookLesson: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val strings = com.example.ui.localization.darsiStrings(language)
+    val isArabic = language == "ar"
 
     LazyColumn(
         modifier = modifier
@@ -151,7 +154,7 @@ fun TodayScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "NEXT LESSON",
+                                    text = strings.nextLesson,
                                     color = Color.White,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -259,7 +262,7 @@ fun TodayScreen(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "$areaOrLoc · ${nextLesson.lesson.locationLabel.ifBlank { "Student Home" }}",
+                                    text = "$areaOrLoc · ${nextLesson.lesson.locationLabel.ifBlank { strings.studentHome }}",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = DarsiNavy
@@ -288,7 +291,7 @@ fun TodayScreen(
                                         Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = DarsiAmberDark)
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = "$departureText (Est. travel $travelMin min)",
+                                            text = if (isArabic) "$departureText (${strings.estimatedTravel} $travelMin دقيقة)" else "$departureText (${strings.estimatedTravel} $travelMin min)",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = DarsiAmberDark
@@ -354,7 +357,7 @@ fun TodayScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Join", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(strings.join, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
 
@@ -399,7 +402,7 @@ fun TodayScreen(
                                     containerColor = DarsiRoyalBlue
                                 )
                             ) {
-                                Text("Open", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(strings.open, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -415,7 +418,7 @@ fun TodayScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "TODAY'S LESSONS",
+                    text = strings.todayLessons,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.8.sp,
@@ -423,7 +426,7 @@ fun TodayScreen(
                 )
 
                 Text(
-                    text = "${todayLessons.size} scheduled",
+                    text = "${todayLessons.size} ${strings.scheduled}",
                     fontSize = 12.sp,
                     color = DarsiNavySubtle
                 )
@@ -460,14 +463,14 @@ fun TodayScreen(
                         }
                         Spacer(modifier = Modifier.height(14.dp))
                         Text(
-                            text = "No lessons today.",
+                            text = strings.noLessonsToday,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarsiNavyDark
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Enjoy the free time — or schedule a lesson.",
+                            text = strings.enjoyFreeTime,
                             fontSize = 13.sp,
                             color = DarsiNavyMuted
                         )
@@ -484,7 +487,7 @@ fun TodayScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Book Lesson", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(strings.bookLesson, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -507,7 +510,7 @@ fun TodayScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "SUMMARY",
+                        text = strings.summary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp,
@@ -521,7 +524,7 @@ fun TodayScreen(
                         // Lessons Today
                         Column {
                             Text(
-                                text = "Lessons today",
+                                text = strings.lessonsToday,
                                 fontSize = 11.sp,
                                 color = DarsiNavyMuted
                             )
@@ -537,7 +540,7 @@ fun TodayScreen(
                         // Payments received today (Soft green)
                         Column {
                             Text(
-                                text = "Received today",
+                                text = strings.receivedToday,
                                 fontSize = 11.sp,
                                 color = DarsiNavyMuted
                             )
@@ -553,7 +556,7 @@ fun TodayScreen(
                         // Amount currently due (Restrained coral if overdue)
                         Column {
                             Text(
-                                text = "Amount due",
+                                text = strings.amountDue,
                                 fontSize = 11.sp,
                                 color = DarsiNavyMuted
                             )
