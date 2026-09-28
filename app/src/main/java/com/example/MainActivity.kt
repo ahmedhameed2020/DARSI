@@ -275,7 +275,8 @@ fun DarsiApp(
                                 onOpenLesson = { viewModel.openLessonDetail(it) },
                                 onBookLessonForDate = { dateStr ->
                                     viewModel.openQuickAdd(0)
-                                }
+                                },
+                                language = appLanguage
                             )
                         }
 
@@ -287,7 +288,8 @@ fun DarsiApp(
                                 onOpenStudent = { viewModel.openStudent(it) },
                                 onOpenGroup = { viewModel.openGroup(it) },
                                 onAddStudent = { viewModel.openQuickAdd(1) },
-                                onAddGroup = { viewModel.openQuickAdd(2) }
+                                onAddGroup = { viewModel.openQuickAdd(2) },
+                                language = appLanguage
                             )
                         }
 
@@ -298,7 +300,8 @@ fun DarsiApp(
                                 summary = todaySummary,
                                 currency = currency,
                                 onRecordPayment = { viewModel.openQuickAdd(3) },
-                                onOpenStudent = { viewModel.openStudent(it) }
+                                onOpenStudent = { viewModel.openStudent(it) },
+                                language = appLanguage
                             )
                         }
 
