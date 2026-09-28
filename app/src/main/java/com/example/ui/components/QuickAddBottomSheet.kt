@@ -574,12 +574,12 @@ private fun BookLessonForm(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                     ) {
-                        Text("Save Anyway")
+                        Text(if (language == "ar") "حفظ على أي حال" else "Save Anyway")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showConflictDialog = false }) {
-                        Text("Go Back")
+                        Text(if (language == "ar") "رجوع" else "Go Back")
                     }
                 }
             )
@@ -633,13 +633,13 @@ private fun AddStudentForm(
             OutlinedTextField(
                 value = grade,
                 onValueChange = { grade = it },
-                label = { Text("Grade") },
+                label = { Text(if (language == "ar") "الصف" else "Grade") },
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it },
-                label = { Text("Subject") },
+                label = { Text(if (language == "ar") "المادة" else "Subject") },
                 modifier = Modifier.weight(1.2f)
             )
         }
@@ -710,7 +710,7 @@ private fun AddStudentForm(
                 .height(48.dp)
                 .testTag("submit_add_student_btn")
         ) {
-            Text("Save Student", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(if (language == "ar") "حفظ الطالب" else "Save Student", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -743,13 +743,13 @@ private fun AddGroupForm(
             OutlinedTextField(
                 value = grade,
                 onValueChange = { grade = it },
-                label = { Text("Grade") },
+                label = { Text(if (language == "ar") "الصف" else "Grade") },
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it },
-                label = { Text("Subject") },
+                label = { Text(if (language == "ar") "المادة" else "Subject") },
                 modifier = Modifier.weight(1.2f)
             )
         }
@@ -803,7 +803,7 @@ private fun AddGroupForm(
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
-            Text("Create Group", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(if (language == "ar") "إنشاء المجموعة" else "Create Group", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -894,7 +894,7 @@ private fun RecordPaymentForm(
                 .height(48.dp)
                 .testTag("submit_record_payment_btn")
         ) {
-            Text("Record Payment", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(if (language == "ar") "تسجيل الدفعة" else "Record Payment", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
