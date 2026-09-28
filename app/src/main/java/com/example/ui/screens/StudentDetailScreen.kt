@@ -233,8 +233,9 @@ fun StudentDetailScreen(
                             val msg = WhatsAppHelper.createLessonReminderMessage(
                                 studentName = student.name,
                                 subject = student.subject,
-                                timeString = "our upcoming session",
-                                location = "scheduled location"
+                                timeString = if (isArabic) "موعدنا القادم" else "our upcoming session",
+                                location = if (isArabic) "الموقع المحدد" else "scheduled location",
+                                language = language
                             )
                             WhatsAppHelper.openChat(context, student.phone, msg)
                         },
