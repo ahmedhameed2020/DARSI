@@ -27,10 +27,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.DarsiTab
@@ -123,6 +126,8 @@ fun DarsiApp(
     val currency = tutorSettings?.defaultCurrency ?: "QAR"
     val tutorName = tutorSettings?.tutorName ?: "Teacher"
     val isOnboardingDone = tutorSettings?.isOnboardingCompleted == true
+    val appLanguage = tutorSettings?.appLanguage ?: "en"
+    val layoutDirection = if (appLanguage == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr
 
     if (!isOnboardingDone) {
         OnboardingScreen(
@@ -145,13 +150,15 @@ fun DarsiApp(
         }
     }
 
-    Scaffold(
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
             if (selectedStudentId == null && selectedGroupId == null) {
                 DarsiBottomBar(
                     currentTab = currentTab,
-                    onTabSelected = { viewModel.selectTab(it) }
+                    onTabSelected = { viewModel.selectTab(it) },
+                    language = appLanguage
                 )
             }
         },
@@ -254,6 +261,7 @@ fun DarsiApp(
                                 todayLessons = todayLessons,
                                 todaySummary = todaySummary,
                                 travelBufferMinutes = tutorSettings?.defaultTravelBufferMinutes ?: 10,
+                                language = appLanguage,
                                 onOpenLesson = { viewModel.openLessonDetail(it) },
                                 onBookLesson = { viewModel.openQuickAdd(0) }
                             )
@@ -376,5 +384,6 @@ fun DarsiApp(
                 )
             }
         }
+    }
     }
 }
