@@ -68,9 +68,11 @@ fun PaymentsScreen(
     currency: String,
     onRecordPayment: () -> Unit,
     onOpenStudent: (Long) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     var showOnlyBalancesDue by remember { mutableStateOf(false) }
 
     val displayedStudents = remember(students, showOnlyBalancesDue) {
@@ -97,7 +99,7 @@ fun PaymentsScreen(
         ) {
             Column {
                 Text(
-                    text = "Payments",
+                    text = if (isArabic) "المدفوعات" else "Payments",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
@@ -117,7 +119,7 @@ fun PaymentsScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Record Payment", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (isArabic) "تسجيل دفعة" else "Record Payment", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -136,7 +138,7 @@ fun PaymentsScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "Received this month",
+                        text = if (isArabic) "تم التحصيل هذا الشهر" else "Received this month",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = DarsiSuccessGreenDark
@@ -159,7 +161,7 @@ fun PaymentsScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "Total amount due",
+                        text = if (isArabic) "إجمالي المستحق" else "Total amount due",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = DarsiCoralRedDark
