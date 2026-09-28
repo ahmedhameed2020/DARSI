@@ -21,13 +21,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Directions
-import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Timer
 import com.example.util.MapsAndLocationHelper
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -87,6 +89,7 @@ fun TodayScreen(
     language: String = "en",
     onOpenLesson: (LessonWithDetails) -> Unit,
     onBookLesson: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -100,7 +103,7 @@ fun TodayScreen(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Calm Greeting & Date Header
+        // Calm Greeting & Date Header + Settings Gear
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -114,7 +117,6 @@ fun TodayScreen(
                             val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
                             val greeting = when {
                                 hour < 12 -> "صباح الخير"
-                                hour < 18 -> "مساء الخير"
                                 else -> "مساء الخير"
                             }
                             "$greeting، $tutorName"
@@ -127,12 +129,24 @@ fun TodayScreen(
                     )
                     Text(
                         text = if (isArabic) {
-                            java.text.SimpleDateFormat("EEEE، d MMMM", java.util.Locale("ar")).format(java.util.Date())
+                            java.text.SimpleDateFormat("EEEE، d MMMM", java.util.Locale.forLanguageTag("ar")).format(java.util.Date())
                         } else {
                             DateTimeUtils.formatReadableDate(System.currentTimeMillis())
                         },
                         fontSize = 13.sp,
                         color = DarsiNavySubtle
+                    )
+                }
+
+                IconButton(
+                    onClick = onOpenSettings,
+                    modifier = Modifier.testTag("top_settings_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = if (isArabic) "الإعدادات" else "Settings",
+                        tint = DarsiNavyMuted,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -143,7 +157,8 @@ fun TodayScreen(
             if (nextLesson != null) {
                 val countdown = DateTimeUtils.getCountdownString(
                     nextLesson.lesson.startEpochMillis,
-                    nextLesson.lesson.endEpochMillis
+                    nextLesson.lesson.endEpochMillis,
+                    isArabic = (language == "ar")
                 )
 
                 Card(
@@ -241,7 +256,7 @@ fun TodayScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "(${nextLesson.lesson.durationMinutes} min)",
+                                text = if (isArabic) "(${nextLesson.lesson.durationMinutes} دقيقة)" else "(${nextLesson.lesson.durationMinutes} min)",
                                 fontSize = 12.sp,
                                 color = DarsiNavySubtle
                             )
@@ -262,7 +277,7 @@ fun TodayScreen(
                                 ) {
                                     Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(14.dp), tint = DarsiRoyalBlue)
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Online Lesson", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarsiRoyalBlue)
+                                    Text(strings.onlineLesson, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = DarsiRoyalBlue)
                                 }
                             }
                         } else if (areaOrLoc.isNotBlank()) {
@@ -284,95 +299,30 @@ fun TodayScreen(
                             }
                         }
 
-                        val travelMin = nextLesson.effectiveTravelTimeMinutes
-                        if (!nextLesson.isOnline && travelMin != null && travelMin > 0) {
-                            val departureText = MapsAndLocationHelper.formatDepartureSuggestion(
-                                startEpochMillis = nextLesson.lesson.startEpochMillis,
-                                travelTimeMinutes = travelMin,
-                                bufferMinutes = travelBufferMinutes
-                            )
-                            if (departureText != null) {
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Surface(
-                                    color = DarsiAmberBg,
-                                    shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, DarsiAmberBorder)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    ) {
-                                        Icon(Icons.Outlined.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = DarsiAmberDark)
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = if (isArabic) "$departureText (${strings.estimatedTravel} $travelMin دقيقة)" else "$departureText (${strings.estimatedTravel} $travelMin min)",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = DarsiAmberDark
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Actions: Directions / Meeting, WhatsApp, Call, Open Lesson
+                        // Actions: Primary Open Lesson button + small icon buttons for WhatsApp and Directions
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (!nextLesson.isOnline) {
-                                FilledTonalButton(
-                                    onClick = {
-                                        MapsAndLocationHelper.navigate(
-                                            context = context,
-                                            latitude = nextLesson.lesson.latitude ?: nextLesson.student?.latitude ?: nextLesson.group?.latitude,
-                                            longitude = nextLesson.lesson.longitude ?: nextLesson.student?.longitude ?: nextLesson.group?.longitude,
-                                            addressText = nextLesson.lesson.addressText.ifBlank { nextLesson.student?.addressText ?: nextLesson.group?.addressText ?: "" },
-                                            areaName = nextLesson.displayAreaOrLocation,
-                                            label = nextLesson.title
-                                        )
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .testTag("next_lesson_directions_btn"),
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                        containerColor = DarsiSurfaceSecondary,
-                                        contentColor = DarsiRoyalBlue
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Directions,
-                                        contentDescription = "Directions",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Directions", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                }
-                            } else if (nextLesson.lesson.meetingUrl.isNotBlank()) {
-                                FilledTonalButton(
-                                    onClick = {
-                                        MapsAndLocationHelper.openMeetingUrl(context, nextLesson.lesson.meetingUrl)
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .testTag("next_lesson_join_meeting_btn"),
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                        containerColor = DarsiRoyalBlueSubtle,
-                                        contentColor = DarsiRoyalBlue
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Public,
-                                        contentDescription = "Meeting",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(strings.join, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                }
+                            Button(
+                                onClick = { onOpenLesson(nextLesson) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp)
+                                    .testTag("next_lesson_open_btn"),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = DarsiRoyalBlue
+                                )
+                            ) {
+                                Text(
+                                    text = if (isArabic) "فتح الحصة" else "Open lesson",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
 
                             val phone = nextLesson.phoneToContact
@@ -389,7 +339,7 @@ fun TodayScreen(
                                         WhatsAppHelper.openChat(context, phone, msg)
                                     },
                                     modifier = Modifier
-                                        .weight(1f)
+                                        .height(44.dp)
                                         .testTag("next_lesson_whatsapp_btn"),
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.filledTonalButtonColors(
@@ -398,26 +348,60 @@ fun TodayScreen(
                                     )
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Chat,
-                                        contentDescription = "WhatsApp",
-                                        modifier = Modifier.size(16.dp)
+                                        imageVector = Icons.AutoMirrored.Outlined.Chat,
+                                        contentDescription = strings.whatsapp,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("WhatsApp", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
 
-                            Button(
-                                onClick = { onOpenLesson(nextLesson) },
-                                modifier = Modifier
-                                    .weight(1.1f)
-                                    .testTag("next_lesson_open_btn"),
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = DarsiRoyalBlue
-                                )
-                            ) {
-                                Text(strings.open, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            if (!nextLesson.isOnline) {
+                                FilledTonalButton(
+                                    onClick = {
+                                        MapsAndLocationHelper.navigate(
+                                            context = context,
+                                            latitude = nextLesson.lesson.latitude ?: nextLesson.student?.latitude ?: nextLesson.group?.latitude,
+                                            longitude = nextLesson.lesson.longitude ?: nextLesson.student?.longitude ?: nextLesson.group?.longitude,
+                                            addressText = nextLesson.lesson.addressText.ifBlank { nextLesson.student?.addressText ?: nextLesson.group?.addressText ?: "" },
+                                            areaName = nextLesson.displayAreaOrLocation,
+                                            label = nextLesson.title
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .height(44.dp)
+                                        .testTag("next_lesson_directions_btn"),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = DarsiSurfaceSecondary,
+                                        contentColor = DarsiRoyalBlue
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Directions,
+                                        contentDescription = strings.directions,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            } else if (nextLesson.lesson.meetingUrl.isNotBlank()) {
+                                FilledTonalButton(
+                                    onClick = {
+                                        MapsAndLocationHelper.openMeetingUrl(context, nextLesson.lesson.meetingUrl)
+                                    },
+                                    modifier = Modifier
+                                        .height(44.dp)
+                                        .testTag("next_lesson_join_meeting_btn"),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = DarsiRoyalBlueSubtle,
+                                        contentColor = DarsiRoyalBlue
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Public,
+                                        contentDescription = strings.join,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -469,7 +453,7 @@ fun TodayScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Default.EventNote,
+                                    imageVector = Icons.AutoMirrored.Filled.EventNote,
                                     contentDescription = null,
                                     tint = DarsiRoyalBlue,
                                     modifier = Modifier.size(28.dp)
@@ -537,11 +521,11 @@ fun TodayScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Lessons Today
+                        // Lessons (الحصص)
                         Column {
                             Text(
-                                text = strings.lessonsToday,
-                                fontSize = 11.sp,
+                                text = if (isArabic) "الحصص" else "Lessons",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -553,11 +537,11 @@ fun TodayScreen(
                             )
                         }
 
-                        // Payments received today (Soft green)
+                        // Received (المحصل)
                         Column {
                             Text(
-                                text = strings.receivedToday,
-                                fontSize = 11.sp,
+                                text = if (isArabic) "المحصل" else "Received",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -569,11 +553,11 @@ fun TodayScreen(
                             )
                         }
 
-                        // Amount currently due (Restrained coral if overdue)
+                        // Due (المستحق)
                         Column {
                             Text(
-                                text = strings.amountDue,
-                                fontSize = 11.sp,
+                                text = if (isArabic) "المستحق" else "Due",
+                                fontSize = 12.sp,
                                 color = DarsiNavyMuted
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -661,7 +645,7 @@ fun TodayLessonTimelineItem(
                         fontWeight = FontWeight.Bold,
                         color = DarsiNavyDark
                     )
-                    StatusBadge(status = lesson.lesson.status)
+                    StatusBadge(status = lesson.lesson.status, language = language)
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))

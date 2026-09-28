@@ -44,8 +44,7 @@ fun DarsiBottomBar(
         NavigationItem(DarsiTab.TODAY, strings.today, Icons.Default.Today, "tab_today"),
         NavigationItem(DarsiTab.CALENDAR, strings.calendar, Icons.Default.CalendarMonth, "tab_calendar"),
         NavigationItem(DarsiTab.STUDENTS, strings.students, Icons.Default.People, "tab_students"),
-        NavigationItem(DarsiTab.PAYMENTS, strings.payments, Icons.Default.Payments, "tab_payments"),
-        NavigationItem(DarsiTab.MORE, strings.more, Icons.Default.MoreHoriz, "tab_more")
+        NavigationItem(DarsiTab.PAYMENTS, strings.payments, Icons.Default.Payments, "tab_payments")
     )
 
     NavigationBar(

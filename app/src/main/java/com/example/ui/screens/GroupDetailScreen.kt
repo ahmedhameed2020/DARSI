@@ -345,7 +345,7 @@ fun GroupDetailScreen(
                                     color = DarsiNavy
                                 )
                                 Text(
-                                    text = DateTimeUtils.getCountdownString(details.nextLesson.startEpochMillis, details.nextLesson.endEpochMillis),
+                                    text = DateTimeUtils.getCountdownString(details.nextLesson.startEpochMillis, details.nextLesson.endEpochMillis, isArabic = isArabic),
                                     fontSize = 12.sp,
                                     color = DarsiRoyalBlue
                                 )

@@ -197,4 +197,46 @@ class ExampleUnitTest {
     assertTrue("Should detect insufficient travel time between lessons", isConflict)
     assertEquals(30L, availableMinutes)
   }
+
+  @Test
+  fun testDarsiSimpleV1OnboardingDefaults() {
+    val settings = com.example.data.local.entity.TutorSettingsEntity(
+      tutorName = "Ahmed",
+      defaultDurationMinutes = 60,
+      defaultCurrency = "QAR",
+      appLanguage = "ar",
+      isOnboardingCompleted = true
+    )
+    assertEquals("Ahmed", settings.tutorName)
+    assertEquals(60, settings.defaultDurationMinutes)
+    assertEquals("QAR", settings.defaultCurrency)
+    assertEquals("ar", settings.appLanguage)
+    assertTrue(settings.isOnboardingCompleted)
+  }
+
+  @Test
+  fun testDarsiSimpleV1BilingualTabs() {
+    val enStrings = com.example.ui.localization.darsiStrings("en")
+    val arStrings = com.example.ui.localization.darsiStrings("ar")
+
+    assertEquals("Today", enStrings.today)
+    assertEquals("Calendar", enStrings.calendar)
+    assertEquals("Students", enStrings.students)
+    assertEquals("Payments", enStrings.payments)
+
+    assertEquals("اليوم", arStrings.today)
+    assertEquals("التقويم", arStrings.calendar)
+    assertEquals("الطلاب", arStrings.students)
+    assertEquals("المدفوعات", arStrings.payments)
+  }
+
+  @Test
+  fun testArabicCountdownFormatting() {
+    val now = System.currentTimeMillis()
+    val futureIn45Min = now + (45 * 60 * 1000L)
+    val end = futureIn45Min + (60 * 60 * 1000L)
+    val countdown = DateTimeUtils.getCountdownString(futureIn45Min, end, isArabic = true)
+    assertTrue("Should be Arabic countdown: $countdown", countdown.contains("خلال") || countdown.contains("د"))
+  }
 }
+

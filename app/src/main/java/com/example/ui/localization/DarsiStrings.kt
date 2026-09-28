@@ -22,7 +22,8 @@ data class DarsiStrings(
     val onlineLesson: String,
     val studentHome: String,
     val estimatedTravel: String,
-    val quickAdd: String
+    val quickAdd: String,
+    val whatsapp: String
 )
 
 val DarsiEnglish = DarsiStrings(
@@ -47,7 +48,8 @@ val DarsiEnglish = DarsiStrings(
     onlineLesson = "Online Lesson",
     studentHome = "Student Home",
     estimatedTravel = "Est. travel",
-    quickAdd = "Quick Add"
+    quickAdd = "Quick Add",
+    whatsapp = "WhatsApp"
 )
 
 val DarsiArabic = DarsiStrings(
@@ -72,7 +74,8 @@ val DarsiArabic = DarsiStrings(
     onlineLesson = "حصة أونلاين",
     studentHome = "منزل الطالب",
     estimatedTravel = "مدة الوصول",
-    quickAdd = "إضافة سريعة"
+    quickAdd = "إضافة سريعة",
+    whatsapp = "واتساب"
 )
 
 fun darsiStrings(language: String): DarsiStrings =

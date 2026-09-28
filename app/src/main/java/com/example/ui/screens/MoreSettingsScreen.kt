@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -94,6 +96,7 @@ fun MoreSettingsScreen(
     onLoadDemoData: () -> Unit,
     onClearAllData: () -> Unit,
     language: String = "en",
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -123,17 +126,36 @@ fun MoreSettingsScreen(
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = if (isArabic) "الإعدادات" else "Settings",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarsiNavy
-            )
-            Text(
-                text = if (isArabic) "خصّص مساعدك الشخصي للتدريس" else "Personalize your teaching companion",
-                fontSize = 13.sp,
-                color = DarsiNavySubtle
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (onBack != null) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.testTag("settings_back_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = if (isArabic) "رجوع" else "Back",
+                            tint = DarsiNavy
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                Column {
+                    Text(
+                        text = if (isArabic) "الإعدادات" else "Settings",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarsiNavy
+                    )
+                    Text(
+                        text = if (isArabic) "خصّص مساعدك الشخصي للتدريس" else "Personalize your teaching companion",
+                        fontSize = 13.sp,
+                        color = DarsiNavySubtle
+                    )
+                }
+            }
         }
 
         // PRIVACY BANNER (Mandatory signature feature: "Your teaching data stays on this device.")

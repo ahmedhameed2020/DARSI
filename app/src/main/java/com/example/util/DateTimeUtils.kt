@@ -13,20 +13,20 @@ object DateTimeUtils {
     private val fullDateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.US)
     private val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.US)
 
-    fun formatTime(epochMillis: Long): String {
-        return timeFormat.format(Date(epochMillis))
+    fun formatTime(epochMillis: Long, locale: Locale = Locale.US): String {
+        return SimpleDateFormat("h:mm a", locale).format(Date(epochMillis))
     }
 
-    fun formatDate(epochMillis: Long): String {
-        return dateFormat.format(Date(epochMillis))
+    fun formatDate(epochMillis: Long, locale: Locale = Locale.US): String {
+        return SimpleDateFormat("yyyy-MM-dd", locale).format(Date(epochMillis))
     }
 
-    fun formatReadableDate(epochMillis: Long): String {
-        return readableDateFormat.format(Date(epochMillis))
+    fun formatReadableDate(epochMillis: Long, locale: Locale = Locale.US): String {
+        return SimpleDateFormat("EEE, MMM d", locale).format(Date(epochMillis))
     }
 
-    fun formatMonthYear(epochMillis: Long): String {
-        return monthYearFormat.format(Date(epochMillis))
+    fun formatMonthYear(epochMillis: Long, locale: Locale = Locale.US): String {
+        return SimpleDateFormat("MMMM yyyy", locale).format(Date(epochMillis))
     }
 
     fun formatTodayDateString(): String {
@@ -51,14 +51,14 @@ object DateTimeUtils {
         return cal.timeInMillis
     }
 
-    fun getCountdownString(startEpochMillis: Long, endEpochMillis: Long): String {
+    fun getCountdownString(startEpochMillis: Long, endEpochMillis: Long, isArabic: Boolean = false): String {
         val now = System.currentTimeMillis()
         if (now in startEpochMillis..endEpochMillis) {
             val remainingMin = TimeUnit.MILLISECONDS.toMinutes(endEpochMillis - now)
-            return "In progress · ends in ${remainingMin}m"
+            return if (isArabic) "جارية الآن · تنتهي خلال $remainingMin د" else "In progress · ends in ${remainingMin}m"
         }
         if (now > endEpochMillis) {
-            return "Finished"
+            return if (isArabic) "انتهت" else "Finished"
         }
         val diffMillis = startEpochMillis - now
         val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
@@ -66,11 +66,11 @@ object DateTimeUtils {
         val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
 
         return when {
-            diffMinutes < 1 -> "Starting now"
-            diffMinutes < 60 -> "Starts in $diffMinutes min"
-            diffHours < 24 -> "Starts in $diffHours hr ${diffMinutes % 60}m"
-            diffDays == 1L -> "Tomorrow at ${formatTime(startEpochMillis)}"
-            else -> "In $diffDays days"
+            diffMinutes < 1 -> if (isArabic) "تبدأ الآن" else "Starting now"
+            diffMinutes < 60 -> if (isArabic) "تبدأ خلال $diffMinutes د" else "Starts in $diffMinutes min"
+            diffHours < 24 -> if (isArabic) "تبدأ خلال $diffHours س و ${diffMinutes % 60} د" else "Starts in $diffHours hr ${diffMinutes % 60}m"
+            diffDays == 1L -> if (isArabic) "غداً الساعة ${formatTime(startEpochMillis)}" else "Tomorrow at ${formatTime(startEpochMillis)}"
+            else -> if (isArabic) "خلال $diffDays أيام" else "In $diffDays days"
         }
     }
 

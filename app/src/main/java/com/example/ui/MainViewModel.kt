@@ -39,6 +39,7 @@ enum class DarsiTab {
     MORE
 }
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = DarsiDatabase.getInstance(application)
     val repository = DarsiRepository(database)
@@ -173,7 +174,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _selectedLessonForDetail.value = null
     }
 
-    fun openQuickAdd(initialTab: Int = 0, initialStudentId: Long? = null) {
+    fun openQuickAdd(initialTab: Int = -1, initialStudentId: Long? = null) {
         _quickAddTab.value = initialTab
         _quickAddInitialStudentId.value = initialStudentId
         _isQuickAddOpen.value = true

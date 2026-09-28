@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import com.example.util.MapsAndLocationHelper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -383,9 +383,9 @@ fun LessonDetailDialog(
                                 contentColor = DarsiSuccessGreenDark
                             )
                         ) {
-                            Icon(Icons.Outlined.Chat, contentDescription = null, modifier = Modifier.size(15.dp))
+                            Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = null, modifier = Modifier.size(15.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("WhatsApp", fontSize = 11.sp)
+                            Text(if (isArabic) "واتساب" else "WhatsApp", fontSize = 11.sp)
                         }
                     }
 

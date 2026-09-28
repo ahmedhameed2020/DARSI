@@ -74,9 +74,11 @@ import com.example.util.MapsAndLocationHelper
 fun StudentLocationCard(
     student: StudentEntity,
     onEditLocation: () -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     var isExpanded by remember { mutableStateOf(false) }
 
     val hasLocation = student.areaName.isNotBlank() || student.addressText.isNotBlank() || student.mapsLink.isNotBlank() || student.latitude != null
@@ -98,7 +100,7 @@ fun StudentLocationCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "LOCATION",
+                        text = if (isArabic) "الموقع" else "LOCATION",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp,
@@ -113,7 +115,7 @@ fun StudentLocationCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Location",
+                            contentDescription = if (isArabic) "تعديل الموقع" else "Edit Location",
                             tint = DarsiNavyMuted,
                             modifier = Modifier.size(16.dp)
                         )
@@ -125,7 +127,11 @@ fun StudentLocationCard(
                         ) {
                             Icon(
                                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (isExpanded) "Hide details" else "Show details",
+                                contentDescription = if (isExpanded) {
+                                    if (isArabic) "إخفاء التفاصيل" else "Hide details"
+                                } else {
+                                    if (isArabic) "عرض التفاصيل" else "Show details"
+                                },
                                 tint = DarsiNavyMuted,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -138,31 +144,31 @@ fun StudentLocationCard(
 
             if (isOnline) {
                 Text(
-                    text = "Online Lessons",
+                    text = if (isArabic) "حصص أونلاين" else "Online Lessons",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Text(
-                    text = "Lessons conducted remotely via video call.",
+                    text = if (isArabic) "تُعقد الحصص عن بُعد عبر مكالمة فيديو." else "Lessons conducted remotely via video call.",
                     fontSize = 12.sp,
                     color = DarsiNavyMuted
                 )
             } else if (!hasLocation) {
                 Text(
-                    text = "No location saved",
+                    text = if (isArabic) "لم يتم حفظ موقع" else "No location saved",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = DarsiNavy
                 )
                 Text(
-                    text = "Tap the edit icon to add student's home area or address.",
+                    text = if (isArabic) "اضغط على أيقونة التعديل لإضافة منطقة أو عنوان الطالب." else "Tap the edit icon to add student's home area or address.",
                     fontSize = 12.sp,
                     color = DarsiNavyMuted
                 )
             } else {
                 Text(
-                    text = student.locationLabel.ifBlank { "Student Home" },
+                    text = student.locationLabel.ifBlank { if (isArabic) "منزل الطالب" else "Student Home" },
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
@@ -186,7 +192,7 @@ fun StudentLocationCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "~${student.defaultTravelTimeMinutes} min travel time",
+                            text = if (isArabic) "~${student.defaultTravelTimeMinutes} دقيقة وقت التنقل" else "~${student.defaultTravelTimeMinutes} min travel time",
                             fontSize = 12.sp,
                             color = DarsiNavyMuted
                         )
@@ -196,13 +202,13 @@ fun StudentLocationCard(
                 AnimatedVisibility(visible = isExpanded) {
                     Column(modifier = Modifier.padding(top = 10.dp)) {
                         if (student.addressText.isNotBlank()) {
-                            DetailRow("Address", student.addressText)
+                            DetailRow(if (isArabic) "العنوان" else "Address", student.addressText)
                         }
                         if (student.locationNotes.isNotBlank()) {
-                            DetailRow("Location Notes", student.locationNotes)
+                            DetailRow(if (isArabic) "ملاحظات الموقع" else "Location Notes", student.locationNotes)
                         }
                         if (student.latitude != null && student.longitude != null) {
-                            DetailRow("Coordinates", "${String.format("%.4f", student.latitude)}, ${String.format("%.4f", student.longitude)}")
+                            DetailRow(if (isArabic) "الإحداثيات" else "Coordinates", "${String.format("%.4f", student.latitude)}, ${String.format("%.4f", student.longitude)}")
                         }
                     }
                 }
@@ -234,7 +240,7 @@ fun StudentLocationCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Open in Maps", fontSize = 12.sp)
+                        Text(if (isArabic) "فتح في الخرائط" else "Open in Maps", fontSize = 12.sp)
                     }
 
                     OutlinedButton(
@@ -257,7 +263,7 @@ fun StudentLocationCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Navigate", fontSize = 12.sp)
+                        Text(if (isArabic) "الاتجاهات" else "Navigate", fontSize = 12.sp)
                     }
                 }
             }
@@ -278,6 +284,7 @@ fun LocationEditorDialog(
     initialLat: Double?,
     initialLng: Double?,
     title: String = "Edit Location",
+    language: String = "en",
     onDismiss: () -> Unit,
     onSave: (
         label: String,
@@ -292,6 +299,7 @@ fun LocationEditorDialog(
     ) -> Unit
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     var label by remember { mutableStateOf(initialLabel) }
     var area by remember { mutableStateOf(initialArea) }
     var address by remember { mutableStateOf(initialAddress) }
@@ -318,7 +326,7 @@ fun LocationEditorDialog(
                         mapsLink = "https://maps.google.com/?q=$fetchedLat,$fetchedLng"
                     }
                     isLocating = false
-                    Toast.makeText(context, "Location captured successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, if (isArabic) "تم تحديد الموقع بنجاح" else "Location captured successfully", Toast.LENGTH_SHORT).show()
                 },
                 onError = { err ->
                     isLocating = false
@@ -326,16 +334,20 @@ fun LocationEditorDialog(
                 }
             )
         } else {
-            Toast.makeText(context, "Location permission was denied.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, if (isArabic) "تم رفض إذن الوصول إلى الموقع." else "Location permission was denied.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    val labelOptions = listOf("Student Home", "Home", "Tutor Location", "School", "Library", "Online", "Other")
+    val labelOptions = if (isArabic) {
+        listOf("منزل الطالب", "المنزل", "مقر المعلم", "المدرسة", "المكتبة", "أونلاين", "أخرى")
+    } else {
+        listOf("Student Home", "Home", "Tutor Location", "School", "Library", "Online", "Other")
+    }
     val typeOptions = listOf(
-        "STUDENT_HOME" to "Student Home",
-        "TUTOR_LOCATION" to "Tutor Location",
-        "ONLINE" to "Online",
-        "CUSTOM" to "Custom"
+        "STUDENT_HOME" to (if (isArabic) "منزل الطالب" else "Student Home"),
+        "TUTOR_LOCATION" to (if (isArabic) "مقر المعلم" else "Tutor Location"),
+        "ONLINE" to (if (isArabic) "أونلاين" else "Online"),
+        "CUSTOM" to (if (isArabic) "مخصص" else "Custom")
     )
 
     AlertDialog(
@@ -348,7 +360,7 @@ fun LocationEditorDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("Lesson Location Type:", fontSize = 12.sp, color = DarsiNavyMuted)
+                Text(if (isArabic) "نوع موقع الحصة:" else "Lesson Location Type:", fontSize = 12.sp, color = DarsiNavyMuted)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     typeOptions.forEach { (code, lbl) ->
                         FilterChip(
@@ -356,8 +368,8 @@ fun LocationEditorDialog(
                             onClick = {
                                 locationType = code
                                 if (code == "ONLINE") {
-                                    label = "Online"
-                                    area = "Online"
+                                    label = if (isArabic) "أونلاين" else "Online"
+                                    area = if (isArabic) "أونلاين" else "Online"
                                 }
                             },
                             label = { Text(lbl, fontSize = 11.sp) }
@@ -366,7 +378,7 @@ fun LocationEditorDialog(
                 }
 
                 if (locationType != "ONLINE") {
-                    Text("Location Label:", fontSize = 12.sp, color = DarsiNavyMuted)
+                    Text(if (isArabic) "تسمية الموقع:" else "Location Label:", fontSize = 12.sp, color = DarsiNavyMuted)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         labelOptions.forEach { opt ->
                             FilterChip(
@@ -380,35 +392,35 @@ fun LocationEditorDialog(
                     OutlinedTextField(
                         value = area,
                         onValueChange = { area = it },
-                        label = { Text("Area / District (e.g. Al Waab, West Bay)") },
+                        label = { Text(if (isArabic) "المنطقة / الحي (مثال: الوعب، الدفنة)" else "Area / District (e.g. Al Waab, West Bay)") },
                         modifier = Modifier.fillMaxWidth().testTag("location_area_input")
                     )
 
                     OutlinedTextField(
                         value = address,
                         onValueChange = { address = it },
-                        label = { Text("Street Address (e.g. Villa 21, Street 320)") },
+                        label = { Text(if (isArabic) "عنوان الشارع (مثال: فيلا 21، شارع 320)" else "Street Address (e.g. Villa 21, Street 320)") },
                         modifier = Modifier.fillMaxWidth().testTag("location_address_input")
                     )
 
                     OutlinedTextField(
                         value = mapsLink,
                         onValueChange = { mapsLink = it },
-                        label = { Text("Maps Link (Google Maps / Apple Maps URL)") },
+                        label = { Text(if (isArabic) "رابط الخرائط (رابط Google Maps / Apple Maps)" else "Maps Link (Google Maps / Apple Maps URL)") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
                         value = travelTimeStr,
                         onValueChange = { travelTimeStr = it.filter { ch -> ch.isDigit() } },
-                        label = { Text("Estimated Travel Time (minutes)") },
+                        label = { Text(if (isArabic) "وقت التنقل التقديري (بالدقائق)" else "Estimated Travel Time (minutes)") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
                         value = notes,
                         onValueChange = { notes = it },
-                        label = { Text("Location Notes (e.g. side entrance, parking)") },
+                        label = { Text(if (isArabic) "ملاحظات الموقع (مثال: المدخل الجانبي، الموقف)" else "Location Notes (e.g. side entrance, parking)") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -427,7 +439,7 @@ fun LocationEditorDialog(
                                             mapsLink = "https://maps.google.com/?q=$fetchedLat,$fetchedLng"
                                         }
                                         isLocating = false
-                                        Toast.makeText(context, "Location captured successfully", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, if (isArabic) "تم تحديد الموقع بنجاح" else "Location captured successfully", Toast.LENGTH_SHORT).show()
                                     },
                                     onError = { err ->
                                         isLocating = false
@@ -448,7 +460,13 @@ fun LocationEditorDialog(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (isLocating) "Locating..." else if (lat != null) "Location Captured ✓" else "Use Current Location",
+                            text = if (isLocating) {
+                                if (isArabic) "جاري تحديد الموقع..." else "Locating..."
+                            } else if (lat != null) {
+                                if (isArabic) "تم تحديد الموقع ✓" else "Location Captured ✓"
+                            } else {
+                                if (isArabic) "استخدام الموقع الحالي" else "Use Current Location"
+                            },
                             fontSize = 12.sp,
                             color = DarsiRoyalBlue
                         )
@@ -456,7 +474,7 @@ fun LocationEditorDialog(
 
                     if (lat != null && lng != null) {
                         Text(
-                            text = "Coordinates: ${String.format("%.4f", lat)}, ${String.format("%.4f", lng)}",
+                            text = if (isArabic) "الإحداثيات: ${String.format("%.4f", lat)}, ${String.format("%.4f", lng)}" else "Coordinates: ${String.format("%.4f", lat)}, ${String.format("%.4f", lng)}",
                             fontSize = 11.sp,
                             color = DarsiNavyMuted
                         )
@@ -465,7 +483,7 @@ fun LocationEditorDialog(
                     OutlinedTextField(
                         value = notes,
                         onValueChange = { notes = it },
-                        label = { Text("Meeting link or instructions (e.g. Google Meet URL)") },
+                        label = { Text(if (isArabic) "رابط الاجتماع أو التعليمات (مثال: رابط Google Meet)" else "Meeting link or instructions (e.g. Google Meet URL)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -475,7 +493,7 @@ fun LocationEditorDialog(
             Button(
                 onClick = {
                     onSave(
-                        label.trim().ifBlank { if (locationType == "ONLINE") "Online" else "Student Home" },
+                        label.trim().ifBlank { if (locationType == "ONLINE") (if (isArabic) "أونلاين" else "Online") else (if (isArabic) "منزل الطالب" else "Student Home") },
                         area.trim(),
                         address.trim(),
                         mapsLink.trim(),
@@ -490,12 +508,12 @@ fun LocationEditorDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue),
                 modifier = Modifier.testTag("save_location_btn")
             ) {
-                Text("Save Location")
+                Text(if (isArabic) "حفظ الموقع" else "Save Location")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(if (isArabic) "إلغاء" else "Cancel")
             }
         }
     )

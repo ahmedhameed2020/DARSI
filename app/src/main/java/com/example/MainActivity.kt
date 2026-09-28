@@ -24,6 +24,8 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import com.example.ui.theme.DarsiBackgroundWarm
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -130,31 +132,40 @@ fun DarsiApp(
     val layoutDirection = if (appLanguage == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr
 
     if (!isOnboardingDone) {
-        OnboardingScreen(
-            onComplete = { settings, loadDemo ->
-                viewModel.saveSettings(settings)
-                if (loadDemo) {
-                    viewModel.loadSampleGulfDemoData()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = DarsiBackgroundWarm
+        ) {
+            OnboardingScreen(
+                onComplete = { settings, openAddStudent ->
+                    viewModel.saveSettings(settings)
+                    if (openAddStudent) {
+                        viewModel.selectTab(DarsiTab.STUDENTS)
+                        viewModel.openQuickAdd(1)
+                    }
                 }
-            }
-        )
+            )
+        }
         return
     }
 
     // Handle Android system back press
-    BackHandler(enabled = selectedStudentId != null || selectedGroupId != null) {
+    BackHandler(enabled = selectedStudentId != null || selectedGroupId != null || currentTab == DarsiTab.MORE) {
         if (selectedStudentId != null) {
             viewModel.closeStudent()
         } else if (selectedGroupId != null) {
             viewModel.closeGroup()
+        } else if (currentTab == DarsiTab.MORE) {
+            viewModel.selectTab(DarsiTab.TODAY)
         }
     }
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
         Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing,
+            containerColor = DarsiBackgroundWarm,
+            contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
-            if (selectedStudentId == null && selectedGroupId == null) {
+            if (selectedStudentId == null && selectedGroupId == null && currentTab != DarsiTab.MORE) {
                 DarsiBottomBar(
                     currentTab = currentTab,
                     onTabSelected = { viewModel.selectTab(it) },
@@ -163,9 +174,9 @@ fun DarsiApp(
             }
         },
         floatingActionButton = {
-            if (selectedStudentId == null && selectedGroupId == null) {
+            if (selectedStudentId == null && selectedGroupId == null && currentTab != DarsiTab.MORE) {
                 FloatingActionButton(
-                    onClick = { viewModel.openQuickAdd(0) },
+                    onClick = { viewModel.openQuickAdd(-1) },
                     shape = CircleShape,
                     containerColor = DarsiRoyalBlue,
                     contentColor = Color.White,
@@ -265,7 +276,8 @@ fun DarsiApp(
                                 travelBufferMinutes = tutorSettings?.defaultTravelBufferMinutes ?: 10,
                                 language = appLanguage,
                                 onOpenLesson = { viewModel.openLessonDetail(it) },
-                                onBookLesson = { viewModel.openQuickAdd(0) }
+                                onBookLesson = { viewModel.openQuickAdd(0) },
+                                onOpenSettings = { viewModel.selectTab(DarsiTab.MORE) }
                             )
                         }
 
@@ -313,7 +325,8 @@ fun DarsiApp(
                                 onSaveSettings = { viewModel.saveSettings(it) },
                                 onLoadDemoData = { viewModel.loadSampleGulfDemoData() },
                                 onClearAllData = { viewModel.clearAllData() },
-                                language = appLanguage
+                                language = appLanguage,
+                                onBack = { viewModel.selectTab(DarsiTab.TODAY) }
                             )
                         }
                     }
