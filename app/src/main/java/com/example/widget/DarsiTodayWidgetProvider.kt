@@ -26,6 +26,8 @@ class DarsiTodayWidgetProvider : AppWidgetProvider() {
         fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
             CoroutineScope(Dispatchers.IO).launch {
                 val db = DarsiDatabase.getInstance(context)
+                val appLanguage = db.tutorSettingsDao().getSettingsDirect()?.appLanguage ?: "en"
+                val isArabic = appLanguage == "ar"
                 val todayStr = DateTimeUtils.formatTodayDateString()
                 val lessons = db.lessonDao().getLessonsForDateDirect(todayStr)
                 val now = System.currentTimeMillis()
@@ -41,8 +43,8 @@ class DarsiTodayWidgetProvider : AppWidgetProvider() {
                     upcomingLessons.filter { it.id != nextLesson.id }
                 } else emptyList()
 
-                var nextTitle = "No lessons scheduled"
-                var nextSub = "Enjoy your free time"
+                var nextTitle = if (isArabic) "لا توجد حصص" else "No lessons scheduled"
+                var nextSub = if (isArabic) "استمتع بوقتك" else "Enjoy your free time"
                 var nextTime = "--:--"
                 var nextCountdown = ""
                 var nextLessonId: Long = -1L
@@ -50,7 +52,7 @@ class DarsiTodayWidgetProvider : AppWidgetProvider() {
                 if (nextLesson != null) {
                     nextLessonId = nextLesson.id
                     val shortLoc = when {
-                        nextLesson.locationType == "ONLINE" -> "Online"
+                        nextLesson.locationType == "ONLINE" -> if (isArabic) "أونلاين" else "Online"
                         nextLesson.areaName.isNotBlank() -> nextLesson.areaName
                         nextLesson.locationLabel.isNotBlank() -> nextLesson.locationLabel
                         else -> ""
@@ -59,12 +61,12 @@ class DarsiTodayWidgetProvider : AppWidgetProvider() {
 
                     if (nextLesson.groupId != null) {
                         val grp = db.groupDao().getGroupByIdDirect(nextLesson.groupId)
-                        nextTitle = grp?.name ?: "Group Lesson"
+                        nextTitle = grp?.name ?: if (isArabic) "حصة مجموعة" else "Group Lesson"
                         val groupArea = if (shortLoc.isBlank() && grp?.areaName?.isNotBlank() == true) " · ${grp.areaName}" else locSuffix
                         nextSub = "${grp?.grade ?: ""} · ${grp?.subject ?: ""}$groupArea"
                     } else if (nextLesson.studentId != null) {
                         val stu = db.studentDao().getStudentByIdDirect(nextLesson.studentId)
-                        nextTitle = stu?.name ?: "Student"
+                        nextTitle = stu?.name ?: if (isArabic) "طالب" else "Student"
                         val studentArea = if (shortLoc.isBlank() && stu?.areaName?.isNotBlank() == true) " · ${stu.areaName}" else locSuffix
                         nextSub = "${stu?.grade ?: ""} · ${stu?.subject ?: ""}$studentArea"
                     }
@@ -132,7 +134,7 @@ class DarsiTodayWidgetProvider : AppWidgetProvider() {
                     val totalCount = upcomingLessons.size
                     views.setTextViewText(
                         R.id.widget_footer,
-                        if (totalCount == 1) "1 lesson today" else "$totalCount lessons today"
+                        if (isArabic) "$totalCount حصص اليوم" else if (totalCount == 1) "1 lesson today" else "$totalCount lessons today"
                     )
 
                     appWidgetManager.updateAppWidget(widgetId, views)
