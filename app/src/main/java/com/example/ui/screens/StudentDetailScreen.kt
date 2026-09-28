@@ -116,13 +116,19 @@ fun StudentDetailScreen(
     onOpenLesson: (LessonWithDetails) -> Unit,
     onCreatePackage: (PackageEntity) -> Unit,
     onDeleteStudent: (Long) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val isArabic = language == "ar"
     val student = details.student
 
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Overview, 1=Lessons, 2=Payments, 3=Packages & Plans, 4=Notes
-    val tabs = listOf("Overview", "Lessons (${lessons.size})", "Payments (${payments.size})", "Packages & Plans", "Notes (${notes.size})")
+    val tabs = if (isArabic) {
+        listOf("نظرة عامة", "الحصص (${lessons.size})", "المدفوعات (${payments.size})", "الباقات والخطط", "الملاحظات (${notes.size})")
+    } else {
+        listOf("Overview", "Lessons (${lessons.size})", "Payments (${payments.size})", "Packages & Plans", "Notes (${notes.size})")
+    }
 
     var privateNotesText by remember(student.privateNotes) { mutableStateOf(student.privateNotes) }
     var notesSavedMessage by remember { mutableStateOf(false) }
@@ -151,12 +157,12 @@ fun StudentDetailScreen(
             IconButton(onClick = onBack, modifier = Modifier.testTag("student_detail_back_btn")) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = if (isArabic) "رجوع" else "Back",
                     tint = DarsiNavy
                 )
             }
             Text(
-                text = "Student Profile",
+                text = if (isArabic) "ملف الطالب" else "Student Profile",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarsiNavy,
@@ -165,14 +171,14 @@ fun StudentDetailScreen(
             IconButton(onClick = { showEditStudentDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Student",
+                    contentDescription = if (isArabic) "تعديل الطالب" else "Edit Student",
                     tint = DarsiRoyalBlue
                 )
             }
             IconButton(onClick = { showDeleteConfirmDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Student",
+                    contentDescription = if (isArabic) "حذف الطالب" else "Delete Student",
                     tint = DarsiCoralRed
                 )
             }
@@ -210,7 +216,7 @@ fun StudentDetailScreen(
                         balanceDue = details.balanceDue,
                         currency = currency,
                         packageInfo = details.activePackage?.let {
-                            "${it.totalLessons - it.usedLessons} left"
+                            if (isArabic) "${it.totalLessons - it.usedLessons} متبقية" else "${it.totalLessons - it.usedLessons} left"
                         }
                     )
                 }
@@ -286,7 +292,7 @@ fun StudentDetailScreen(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Call", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(if (isArabic) "اتصال" else "Call", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
 
                     Button(
