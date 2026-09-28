@@ -248,7 +248,8 @@ fun DarsiApp(
                         },
                         onUpdateGroup = { g ->
                             viewModel.saveGroup(g, emptyList())
-                        }
+                        },
+                        language = appLanguage
                     )
                 }
 
@@ -311,7 +312,8 @@ fun DarsiApp(
                                 settings = tutorSettings,
                                 onSaveSettings = { viewModel.saveSettings(it) },
                                 onLoadDemoData = { viewModel.loadSampleGulfDemoData() },
-                                onClearAllData = { viewModel.clearAllData() }
+                                onClearAllData = { viewModel.clearAllData() },
+                                language = appLanguage
                             )
                         }
                     }
