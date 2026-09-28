@@ -36,14 +36,16 @@ data class NavigationItem(
 fun DarsiBottomBar(
     currentTab: DarsiTab,
     onTabSelected: (DarsiTab) -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
+    val strings = com.example.ui.localization.darsiStrings(language)
     val items = listOf(
-        NavigationItem(DarsiTab.TODAY, "Today", Icons.Default.Today, "tab_today"),
-        NavigationItem(DarsiTab.CALENDAR, "Calendar", Icons.Default.CalendarMonth, "tab_calendar"),
-        NavigationItem(DarsiTab.STUDENTS, "Students", Icons.Default.People, "tab_students"),
-        NavigationItem(DarsiTab.PAYMENTS, "Payments", Icons.Default.Payments, "tab_payments"),
-        NavigationItem(DarsiTab.MORE, "More", Icons.Default.MoreHoriz, "tab_more")
+        NavigationItem(DarsiTab.TODAY, strings.today, Icons.Default.Today, "tab_today"),
+        NavigationItem(DarsiTab.CALENDAR, strings.calendar, Icons.Default.CalendarMonth, "tab_calendar"),
+        NavigationItem(DarsiTab.STUDENTS, strings.students, Icons.Default.People, "tab_students"),
+        NavigationItem(DarsiTab.PAYMENTS, strings.payments, Icons.Default.Payments, "tab_payments"),
+        NavigationItem(DarsiTab.MORE, strings.more, Icons.Default.MoreHoriz, "tab_more")
     )
 
     NavigationBar(
