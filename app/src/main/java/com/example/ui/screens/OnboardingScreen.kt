@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.sp
 import com.example.data.local.entity.TutorSettingsEntity
 import com.example.ui.components.DarsiCard
@@ -67,7 +70,12 @@ fun OnboardingScreen(
     var durationMinutes by remember { mutableIntStateOf(60) }
     var currency by remember { mutableStateOf("QAR") }
     var googleCalendarEnabled by remember { mutableStateOf(false) }
+    var selectedLanguage by remember { mutableStateOf("en") }
+    val isArabic = selectedLanguage == "ar"
 
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (isArabic) LayoutDirection.Rtl else LayoutDirection.Ltr
+    ) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -102,12 +110,36 @@ fun OnboardingScreen(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Your private teaching companion.",
+                    text = if (isArabic) "مساعدك الشخصي للدروس الخصوصية." else "Your private teaching companion.",
                     fontSize = 15.sp,
                     color = DarsiNavyMuted,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilledTonalButton(
+                        onClick = { selectedLanguage = "en" },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = if (!isArabic) DarsiRoyalBlue else DarsiSurfaceVariant,
+                            contentColor = if (!isArabic) Color.White else DarsiNavy
+                        )
+                    ) { Text("English") }
+                    FilledTonalButton(
+                        onClick = { selectedLanguage = "ar" },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = if (isArabic) DarsiRoyalBlue else DarsiSurfaceVariant,
+                            contentColor = if (isArabic) Color.White else DarsiNavy
+                        )
+                    ) { Text("العربية") }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Surface(
                     color = DarsiSuccessGreenBg,
@@ -126,7 +158,7 @@ fun OnboardingScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "100% offline & private. No accounts, no clouds.",
+                            text = if (isArabic) "خصوصية كاملة وعمل دون اتصال. لا حسابات ولا سحابة." else "100% offline & private. No accounts, no clouds.",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = DarsiNavy
@@ -144,21 +176,21 @@ fun OnboardingScreen(
                         .height(50.dp)
                         .testTag("onboarding_continue_1")
                 ) {
-                    Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "متابعة" else "Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             2 -> {
                 // Screen 2: Your Name
                 Text(
-                    text = "What is your name?",
+                    text = if (isArabic) "ما اسمك؟" else "What is your name?",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "We will use this to greet you each morning.",
+                    text = if (isArabic) "سنستخدم الاسم للترحيب بك داخل التطبيق." else "We will use this to greet you each morning.",
                     fontSize = 13.sp,
                     color = DarsiNavyMuted
                 )
@@ -166,7 +198,7 @@ fun OnboardingScreen(
                 OutlinedTextField(
                     value = tutorName,
                     onValueChange = { tutorName = it },
-                    placeholder = { Text("e.g. Mr. Tariq or Sara") },
+                    placeholder = { Text(if (isArabic) "مثال: أحمد" else "e.g. Mr. Tariq or Sara") },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
@@ -183,21 +215,21 @@ fun OnboardingScreen(
                         .height(50.dp)
                         .testTag("onboarding_continue_2")
                 ) {
-                    Text("Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "التالي" else "Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             3 -> {
                 // Screen 3: What do you teach?
                 Text(
-                    text = "What do you teach?",
+                    text = if (isArabic) "ماذا تدرّس؟" else "What do you teach?",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Enter one or more subjects.",
+                    text = if (isArabic) "أدخل مادة أو أكثر." else "Enter one or more subjects.",
                     fontSize = 13.sp,
                     color = DarsiNavyMuted
                 )
@@ -220,21 +252,21 @@ fun OnboardingScreen(
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
-                    Text("Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "التالي" else "Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             4 -> {
                 // Screen 4: Lesson Duration & Currency
                 Text(
-                    text = "Teaching Defaults",
+                    text = if (isArabic) "الإعدادات الافتراضية للتدريس" else "Teaching Defaults",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Default lesson duration:",
+                    text = if (isArabic) "مدة الحصة الافتراضية:" else "Default lesson duration:",
                     fontSize = 13.sp,
                     color = DarsiNavyMuted
                 )
@@ -262,7 +294,7 @@ fun OnboardingScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "Default currency:",
+                    text = if (isArabic) "العملة الافتراضية:" else "Default currency:",
                     fontSize = 13.sp,
                     color = DarsiNavyMuted
                 )
@@ -297,7 +329,7 @@ fun OnboardingScreen(
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
-                    Text("Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "التالي" else "Next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -370,14 +402,14 @@ fun OnboardingScreen(
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "You're ready.",
+                    text = if (isArabic) "أنت جاهز." else "You're ready.",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarsiNavy
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Start by adding your first student or explore with sample Qatar demo data.",
+                    text = if (isArabic) "ابدأ بإضافة أول طالب أو جرّب بيانات تجريبية من قطر." else "Start by adding your first student or explore with sample Qatar demo data.",
                     fontSize = 14.sp,
                     color = DarsiNavyMuted,
                     textAlign = TextAlign.Center
@@ -391,6 +423,7 @@ fun OnboardingScreen(
                     defaultDurationMinutes = durationMinutes,
                     defaultCurrency = currency,
                     googleCalendarEnabled = googleCalendarEnabled,
+                    appLanguage = selectedLanguage,
                     isOnboardingCompleted = true
                 )
 
@@ -403,7 +436,7 @@ fun OnboardingScreen(
                         .height(50.dp)
                         .testTag("onboarding_load_sample_btn")
                 ) {
-                    Text("Explore with Qatar Sample Data", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (isArabic) "تجربة بيانات قطرية" else "Explore with Qatar Sample Data", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -416,9 +449,10 @@ fun OnboardingScreen(
                         .height(50.dp)
                         .testTag("onboarding_start_empty_btn")
                 ) {
-                    Text("Start with Blank Schedule", fontSize = 14.sp, color = DarsiNavy)
+                    Text(if (isArabic) "البدء بجدول فارغ" else "Start with Blank Schedule", fontSize = 14.sp, color = DarsiNavy)
                 }
             }
         }
+    }
     }
 }
