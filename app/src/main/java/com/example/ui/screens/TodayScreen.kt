@@ -110,13 +110,27 @@ fun TodayScreen(
             ) {
                 Column {
                     Text(
-                        text = DateTimeUtils.getGreeting(tutorName),
+                        text = if (isArabic) {
+                            val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                            val greeting = when {
+                                hour < 12 -> "صباح الخير"
+                                hour < 18 -> "مساء الخير"
+                                else -> "مساء الخير"
+                            }
+                            "$greeting، $tutorName"
+                        } else {
+                            DateTimeUtils.getGreeting(tutorName)
+                        },
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarsiNavyDark
                     )
                     Text(
-                        text = DateTimeUtils.formatReadableDate(System.currentTimeMillis()),
+                        text = if (isArabic) {
+                            java.text.SimpleDateFormat("EEEE، d MMMM", java.util.Locale("ar")).format(java.util.Date())
+                        } else {
+                            DateTimeUtils.formatReadableDate(System.currentTimeMillis())
+                        },
                         fontSize = 13.sp,
                         color = DarsiNavySubtle
                     )
@@ -496,6 +510,7 @@ fun TodayScreen(
             items(todayLessons, key = { it.lesson.id }) { item ->
                 TodayLessonTimelineItem(
                     lesson = item,
+                    language = language,
                     onClick = { onOpenLesson(item) }
                 )
             }
@@ -582,6 +597,7 @@ fun TodayScreen(
 @Composable
 fun TodayLessonTimelineItem(
     lesson: LessonWithDetails,
+    language: String = "en",
     onClick: () -> Unit
 ) {
     DarsiCard(
@@ -677,7 +693,7 @@ fun TodayLessonTimelineItem(
                 if (lesson.lesson.topicCovered.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Topic: ${lesson.lesson.topicCovered}",
+                        text = "${if (language == "ar") "الموضوع" else "Topic"}: ${lesson.lesson.topicCovered}",
                         fontSize = 11.sp,
                         color = DarsiRoyalBlueDark,
                         fontWeight = FontWeight.Medium
