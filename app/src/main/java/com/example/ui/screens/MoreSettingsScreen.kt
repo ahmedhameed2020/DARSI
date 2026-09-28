@@ -93,6 +93,7 @@ fun MoreSettingsScreen(
     onSaveSettings: (TutorSettingsEntity) -> Unit,
     onLoadDemoData: () -> Unit,
     onClearAllData: () -> Unit,
+    language: String = "en",
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -106,6 +107,7 @@ fun MoreSettingsScreen(
     var travelBufferMinutes by remember(currentSettings.defaultTravelBufferMinutes) { mutableStateOf(currentSettings.defaultTravelBufferMinutes) }
     var calendarSyncEnabled by remember(currentSettings.googleCalendarEnabled) { mutableStateOf(currentSettings.googleCalendarEnabled) }
     var selectedLanguage by remember(currentSettings.appLanguage) { mutableStateOf(currentSettings.appLanguage) }
+    val isArabic = selectedLanguage == "ar"
 
     var showRestoreDialog by remember { mutableStateOf(false) }
     var restoreJsonInput by remember { mutableStateOf("") }
@@ -122,13 +124,13 @@ fun MoreSettingsScreen(
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Settings",
+                text = if (isArabic) "الإعدادات" else "Settings",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarsiNavy
             )
             Text(
-                text = "Personalize your teaching companion",
+                text = if (isArabic) "خصّص مساعدك الشخصي للتدريس" else "Personalize your teaching companion",
                 fontSize = 13.sp,
                 color = DarsiNavySubtle
             )
@@ -164,19 +166,19 @@ fun MoreSettingsScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Privacy First",
+                            text = if (isArabic) "الخصوصية أولًا" else "Privacy First",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarsiSuccessGreenDark
                         )
                         Text(
-                            text = "Your teaching data stays on this device.",
+                            text = if (isArabic) "بيانات التدريس تبقى على هذا الجهاز." else "Your teaching data stays on this device.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = DarsiNavy
                         )
                         Text(
-                            text = "No account required. All student notes and payments remain 100% offline.",
+                            text = if (isArabic) "لا تحتاج إلى حساب. بيانات الطلاب والمدفوعات تبقى محلية." else "No account required. All student notes and payments remain 100% offline.",
                             fontSize = 11.sp,
                             color = DarsiNavyMuted
                         )
@@ -187,11 +189,11 @@ fun MoreSettingsScreen(
 
         // Section: Profile & Teaching Defaults
         item {
-            SettingsCard(title = "PROFILE & TEACHING") {
+            SettingsCard(title = if (isArabic) "الملف والتدريس" else "PROFILE & TEACHING") {
                 OutlinedTextField(
                     value = tutorName,
                     onValueChange = { tutorName = it },
-                    label = { Text("Tutor Name") },
+                    label = { Text(if (isArabic) "اسم المدرس" else "Tutor Name") },
                     singleLine = true,
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -202,7 +204,7 @@ fun MoreSettingsScreen(
                 OutlinedTextField(
                     value = subjects,
                     onValueChange = { subjects = it },
-                    label = { Text("Subjects Taught (comma separated)") },
+                    label = { Text(if (isArabic) "المواد التي تدرّسها" else "Subjects Taught (comma separated)") },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -210,7 +212,7 @@ fun MoreSettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Default Lesson Duration",
+                    text = if (isArabic) "مدة الحصة الافتراضية" else "Default Lesson Duration",
                     fontSize = 12.sp,
                     color = DarsiNavyMuted
                 )
@@ -239,7 +241,7 @@ fun MoreSettingsScreen(
 
         // Section: Currency
         item {
-            SettingsCard(title = "CURRENCY") {
+            SettingsCard(title = if (isArabic) "العملة" else "CURRENCY") {
                 Text(
                     text = "Active currency for student fees & packages:",
                     fontSize = 12.sp,
@@ -271,7 +273,7 @@ fun MoreSettingsScreen(
 
         // Section: Travel Buffer
         item {
-            SettingsCard(title = "TRAVEL BUFFER") {
+            SettingsCard(title = if (isArabic) "هامش وقت التنقل" else "TRAVEL BUFFER") {
                 Text(
                     text = "Default extra preparation buffer added to travel departure calculations:",
                     fontSize = 12.sp,
@@ -309,7 +311,7 @@ fun MoreSettingsScreen(
 
         // Section: Google Calendar
         item {
-            SettingsCard(title = "GOOGLE CALENDAR") {
+            SettingsCard(title = if (isArabic) "تقويم Google" else "GOOGLE CALENDAR") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -317,7 +319,7 @@ fun MoreSettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Sync to Google Calendar",
+                            text = if (isArabic) "مزامنة مع تقويم Google" else "Sync to Google Calendar",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = DarsiNavy
@@ -367,7 +369,7 @@ fun MoreSettingsScreen(
 
         // Section: Language & RTL
         item {
-            SettingsCard(title = "LANGUAGE & LOCALIZATION") {
+            SettingsCard(title = if (isArabic) "اللغة والتوطين" else "LANGUAGE & LOCALIZATION") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -424,13 +426,13 @@ fun MoreSettingsScreen(
             ) {
                 Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Save Changes", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(if (isArabic) "حفظ التغييرات" else "Save Changes", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
 
         // Section: Backup & Restore
         item {
-            SettingsCard(title = "BACKUP & RESTORE") {
+            SettingsCard(title = if (isArabic) "النسخ الاحتياطي والاستعادة" else "BACKUP & RESTORE") {
                 Text(
                     text = "Export an encrypted or readable JSON backup of all students, lessons, notes, and payments to safely store or transfer to another device.",
                     fontSize = 12.sp,
@@ -454,7 +456,7 @@ fun MoreSettingsScreen(
                     ) {
                         Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Export Backup", fontSize = 12.sp)
+                        Text(if (isArabic) "تصدير نسخة" else "Export Backup", fontSize = 12.sp)
                     }
 
                     FilledTonalButton(
@@ -464,7 +466,7 @@ fun MoreSettingsScreen(
                     ) {
                         Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Restore Backup", fontSize = 12.sp)
+                        Text(if (isArabic) "استعادة نسخة" else "Restore Backup", fontSize = 12.sp)
                     }
                 }
             }
@@ -472,7 +474,7 @@ fun MoreSettingsScreen(
 
         // Section: Seed / Demo Data
         item {
-            SettingsCard(title = "SAMPLE / DEMO DATA") {
+            SettingsCard(title = if (isArabic) "بيانات تجريبية" else "SAMPLE / DEMO DATA") {
                 Text(
                     text = "Easily load realistic Gulf / Qatar sample data (Ahmed Ali, Mohammed Hassan, Grade 12 Group A) to explore all scheduling, attendance, and payment flows.",
                     fontSize = 12.sp,
@@ -492,7 +494,7 @@ fun MoreSettingsScreen(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = DarsiRoyalBlue)
                     ) {
-                        Text("Load Sample Data", fontSize = 12.sp)
+                        Text(if (isArabic) "تحميل بيانات تجريبية" else "Load Sample Data", fontSize = 12.sp)
                     }
 
                     OutlinedButton(
@@ -500,7 +502,7 @@ fun MoreSettingsScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Reset All Data", fontSize = 12.sp, color = DarsiCoralRed)
+                        Text(if (isArabic) "مسح كل البيانات" else "Reset All Data", fontSize = 12.sp, color = DarsiCoralRed)
                     }
                 }
             }
@@ -521,7 +523,7 @@ fun MoreSettingsScreen(
                     color = DarsiNavy
                 )
                 Text(
-                    text = "Your private teaching companion.",
+                    text = if (isArabic) "مساعدك الشخصي للدروس الخصوصية." else "Your private teaching companion.",
                     fontSize = 12.sp,
                     color = DarsiNavyMuted
                 )
