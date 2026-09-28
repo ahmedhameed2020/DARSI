@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Centered open book and quill / knowledge emblem within 66dp safe zone -->
+    <!-- Open Book Left Page -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M52,38 L34,35 C30,34.3 27,37 27,41 L27,69 C27,72.5 30,75 34,75.7 L52,78.5 Z" />
+    <!-- Open Book Right Page -->
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M56,38 L74,35 C78,34.3 81,37 81,41 L81,69 C81,72.5 78,75 74,75.7 L56,78.5 Z" />
+    <!-- Spine divider -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M52.5,37.5 L55.5,37.5 L55.5,79 L52.5,79 Z" />
+    <!-- Page text lines Left -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M33,45 L47,47 L47,49 L33,47 Z M33,52 L47,54 L47,56 L33,54 Z M33,59 L44,60.5 L44,62.5 L33,61 Z" />
+    <!-- Page text lines Right -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M61,47 L75,45 L75,47 L61,49 Z M61,54 L75,52 L75,54 L61,56 Z M64,60.5 L75,59 L75,61 L64,62.5 Z" />
+    <!-- Golden bookmark ribbon -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M52,35 L56,35 L56,58 L54,55 L52,58 Z" />
+    <!-- Golden academic / star emblem at top center -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M54,24 L56,29.5 L61.5,30 L57.2,33.5 L58.5,39 L54,36 L49.5,39 L50.8,33.5 L46.5,30 L52,29.5 Z" />
+</vector>

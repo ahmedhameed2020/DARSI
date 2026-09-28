@@ -1,0 +1,6 @@
+{
+  "name": "Darsi",
+  "description": "Your private teaching companion. Local-first schedule, student, group, attendance, and payment tracker for private tutors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
